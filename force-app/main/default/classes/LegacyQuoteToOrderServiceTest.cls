@@ -3,22 +3,87 @@
  * Data-heavy tests required by the legacy architecture.
  * Static dependencies cannot be substituted, so every business scenario crosses
  * real SOQL and DML boundaries. This gives confidence but increases runtime and
- * makes failures less isolated.
+ * makes failures less isolated. Shared @TestSetup data keeps the comparison fair
+ * by amortizing unavoidable fixture DML across the class; each test still invokes
+ * the real legacy dependencies relevant to its scenario.
  */
 private class LegacyQuoteToOrderServiceTest {
+  private static final String ACCEPTED_TWO_LINES = 'Accepted Two Lines';
+  private static final String ACCEPTED_ONE_LINE = 'Accepted One Line';
+  private static final String DRAFT_ONE_LINE = 'Draft One Line';
+  private static final String ALREADY_CONVERTED = 'Already Converted';
+  private static final String NO_LINES = 'No Lines';
+  private static final String NO_ACCOUNT = 'No Account';
+  private static final String NO_PRICE_BOOK = 'No Price Book';
+
+  /**
+   * Creates every persisted scenario once for the class. Salesforce gives each
+   * test method an isolated copy, so methods can query and mutate these records
+   * without leaking state while avoiding repeated setup DML.
+   */
+  @TestSetup
+  static void setupData() {
+    QuoteToOrderTestDataFactory.createQuote(ACCEPTED_TWO_LINES, 2, 'Accepted');
+    QuoteToOrderTestDataFactory.createQuote(ACCEPTED_ONE_LINE, 1, 'Accepted');
+    QuoteToOrderTestDataFactory.createQuote(DRAFT_ONE_LINE, 1, 'Draft');
+    QuoteToOrderTestDataFactory.Graph converted = QuoteToOrderTestDataFactory.createQuote(
+      ALREADY_CONVERTED,
+      1,
+      'Accepted'
+    );
+    QuoteToOrderTestDataFactory.createQuote(NO_LINES, 0, 'Accepted');
+
+    Order existingOrder = new Order(
+      AccountId = converted.account.Id,
+      EffectiveDate = Date.today(),
+      Pricebook2Id = Test.getStandardPricebookId(),
+      Status = 'Draft'
+    );
+    insert existingOrder;
+    converted.quoteRecord.Converted_Order__c = existingOrder.Id;
+    update converted.quoteRecord;
+
+    Opportunity accountlessOpportunity = new Opportunity(
+      Name = NO_ACCOUNT + ' Opportunity',
+      StageName = 'Prospecting',
+      CloseDate = Date.today().addDays(30),
+      Pricebook2Id = Test.getStandardPricebookId()
+    );
+    insert accountlessOpportunity;
+    insert new Quote(
+      Name = NO_ACCOUNT,
+      OpportunityId = accountlessOpportunity.Id,
+      Pricebook2Id = Test.getStandardPricebookId(),
+      Status = 'Accepted'
+    );
+
+    Account noPriceBookAccount = new Account(Name = NO_PRICE_BOOK + ' Account');
+    insert noPriceBookAccount;
+    Opportunity noPriceBookOpportunity = new Opportunity(
+      Name = NO_PRICE_BOOK + ' Opportunity',
+      AccountId = noPriceBookAccount.Id,
+      StageName = 'Prospecting',
+      CloseDate = Date.today().addDays(30)
+    );
+    insert noPriceBookOpportunity;
+    insert new Quote(
+      Name = NO_PRICE_BOOK,
+      OpportunityId = noPriceBookOpportunity.Id,
+      Status = 'Accepted'
+    );
+  }
+
   /**
    * Verifies the transitional interface method delegates to the legacy static
    * conversion and returns the created Order and line count.
    */
   @IsTest
   static void convertQuotesTest() {
-    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
-      1
-    );
+    Quote quoteRecord = quoteByName(ACCEPTED_ONE_LINE);
 
     QuoteToOrderResult result = new LegacyQuoteToOrderService()
-      .convertQuotes(new Set<Id>{ graph.quoteRecord.Id })
-      .get(graph.quoteRecord.Id);
+      .convertQuotes(new Set<Id>{ quoteRecord.Id })
+      .get(quoteRecord.Id);
 
     Assert.isNotNull(result.orderId);
     Assert.areEqual(1, result.orderItemCount);
@@ -43,21 +108,10 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies a Quote linked to an existing Order cannot be converted again. */
   @IsTest
   static void alreadyConvertedQuoteTest() {
-    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
-      1
-    );
-    Order existingOrder = new Order(
-      AccountId = graph.account.Id,
-      EffectiveDate = Date.today(),
-      Pricebook2Id = Test.getStandardPricebookId(),
-      Status = 'Draft'
-    );
-    insert existingOrder;
-    graph.quoteRecord.Converted_Order__c = existingOrder.Id;
-    update graph.quoteRecord;
+    Quote quoteRecord = quoteByName(ALREADY_CONVERTED);
 
     assertConversionError(
-      new Set<Id>{ graph.quoteRecord.Id },
+      new Set<Id>{ quoteRecord.Id },
       'Quote was already converted'
     );
   }
@@ -65,20 +119,7 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies an eligible Quote without an Account is rejected before DML. */
   @IsTest
   static void quoteWithoutAccountTest() {
-    Opportunity opportunity = new Opportunity(
-      Name = 'Accountless Opportunity',
-      StageName = 'Prospecting',
-      CloseDate = Date.today().addDays(30),
-      Pricebook2Id = Test.getStandardPricebookId()
-    );
-    insert opportunity;
-    Quote quoteRecord = new Quote(
-      Name = 'Accountless Quote',
-      OpportunityId = opportunity.Id,
-      Pricebook2Id = Test.getStandardPricebookId(),
-      Status = LegacyQuoteConversionPolicy.getPolicy().Accepted_Quote_Status__c
-    );
-    insert quoteRecord;
+    Quote quoteRecord = quoteByName(NO_ACCOUNT);
 
     assertConversionError(
       new Set<Id>{ quoteRecord.Id },
@@ -89,21 +130,7 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies an eligible Quote without a Price Book is rejected before DML. */
   @IsTest
   static void quoteWithoutPriceBookTest() {
-    Account accountRecord = new Account(Name = 'No Price Book Account');
-    insert accountRecord;
-    Opportunity opportunity = new Opportunity(
-      Name = 'No Price Book Opportunity',
-      AccountId = accountRecord.Id,
-      StageName = 'Prospecting',
-      CloseDate = Date.today().addDays(30)
-    );
-    insert opportunity;
-    Quote quoteRecord = new Quote(
-      Name = 'No Price Book Quote',
-      OpportunityId = opportunity.Id,
-      Status = LegacyQuoteConversionPolicy.getPolicy().Accepted_Quote_Status__c
-    );
-    insert quoteRecord;
+    Quote quoteRecord = quoteByName(NO_PRICE_BOOK);
 
     assertConversionError(
       new Set<Id>{ quoteRecord.Id },
@@ -114,12 +141,10 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies an eligible Quote without lines is rejected before Order DML. */
   @IsTest
   static void quoteWithoutLinesTest() {
-    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
-      0
-    );
+    Quote quoteRecord = quoteByName(NO_LINES);
 
     assertConversionError(
-      new Set<Id>{ graph.quoteRecord.Id },
+      new Set<Id>{ quoteRecord.Id },
       'Quote must contain at least one line'
     );
   }
@@ -130,61 +155,13 @@ private class LegacyQuoteToOrderServiceTest {
    */
   @IsTest
   static void acceptedQuoteCreatesOrderAndLines() {
-    Account accountRecord = new Account(Name = 'Brown-bag Account');
-    insert accountRecord;
-
-    Opportunity opportunity = new Opportunity(
-      Name = 'Brown-bag Opportunity',
-      AccountId = accountRecord.Id,
-      StageName = 'Prospecting',
-      CloseDate = Date.today().addDays(30),
-      Pricebook2Id = Test.getStandardPricebookId()
-    );
-    insert opportunity;
-
-    List<Product2> products = new List<Product2>{
-      new Product2(Name = 'Brown-bag Product A', IsActive = true),
-      new Product2(Name = 'Brown-bag Product B', IsActive = true)
-    };
-    insert products;
-
-    List<PricebookEntry> entries = new List<PricebookEntry>{
-      new PricebookEntry(
-        Pricebook2Id = Test.getStandardPricebookId(),
-        Product2Id = products[0].Id,
-        UnitPrice = 10,
-        IsActive = true
-      ),
-      new PricebookEntry(
-        Pricebook2Id = Test.getStandardPricebookId(),
-        Product2Id = products[1].Id,
-        UnitPrice = 25,
-        IsActive = true
-      )
-    };
-    insert entries;
-
-    Quote quoteRecord = new Quote(
-      Name = 'Brown-bag Quote',
-      OpportunityId = opportunity.Id,
-      Pricebook2Id = Test.getStandardPricebookId(),
-      Status = 'Accepted'
-    );
-    insert quoteRecord;
-    insert new List<QuoteLineItem>{
-      new QuoteLineItem(
-        QuoteId = quoteRecord.Id,
-        PricebookEntryId = entries[0].Id,
-        Quantity = 2,
-        UnitPrice = 9
-      ),
-      new QuoteLineItem(
-        QuoteId = quoteRecord.Id,
-        PricebookEntryId = entries[1].Id,
-        Quantity = 3,
-        UnitPrice = 24
-      )
-    };
+    Quote quoteRecord = quoteByName(ACCEPTED_TWO_LINES);
+    List<QuoteLineItem> sourceLines = [
+      SELECT PricebookEntryId, Quantity, UnitPrice
+      FROM QuoteLineItem
+      WHERE QuoteId = :quoteRecord.Id
+      ORDER BY UnitPrice
+    ];
 
     Test.startTest();
     QuoteToOrderResult result = LegacyQuoteToOrderService.convert(
@@ -210,17 +187,23 @@ private class LegacyQuoteToOrderServiceTest {
       FROM Quote
       WHERE Id = :quoteRecord.Id
     ];
-    Assert.areEqual(accountRecord.Id, savedOrder.AccountId);
+    Assert.areEqual(quoteRecord.AccountId, savedOrder.AccountId);
     Assert.areEqual(Date.today(), savedOrder.EffectiveDate);
     Assert.areEqual(Test.getStandardPricebookId(), savedOrder.Pricebook2Id);
     Assert.areEqual('Draft', savedOrder.Status);
     Assert.areEqual(2, savedItems.size());
-    Assert.areEqual(entries[0].Id, savedItems[0].PricebookEntryId);
-    Assert.areEqual(Decimal.valueOf(2), savedItems[0].Quantity);
-    Assert.areEqual(Decimal.valueOf(9), savedItems[0].UnitPrice);
-    Assert.areEqual(entries[1].Id, savedItems[1].PricebookEntryId);
-    Assert.areEqual(Decimal.valueOf(3), savedItems[1].Quantity);
-    Assert.areEqual(Decimal.valueOf(24), savedItems[1].UnitPrice);
+    Assert.areEqual(
+      sourceLines[0].PricebookEntryId,
+      savedItems[0].PricebookEntryId
+    );
+    Assert.areEqual(sourceLines[0].Quantity, savedItems[0].Quantity);
+    Assert.areEqual(sourceLines[0].UnitPrice, savedItems[0].UnitPrice);
+    Assert.areEqual(
+      sourceLines[1].PricebookEntryId,
+      savedItems[1].PricebookEntryId
+    );
+    Assert.areEqual(sourceLines[1].Quantity, savedItems[1].Quantity);
+    Assert.areEqual(sourceLines[1].UnitPrice, savedItems[1].UnitPrice);
     Assert.areEqual(2, result.orderItemCount);
     Assert.areEqual(orderId, savedQuote.Converted_Order__c);
   }
@@ -228,21 +211,7 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies a Quote outside the configured status is silently ignored. */
   @IsTest
   static void nonAcceptedQuoteIsIgnored() {
-    Account accountRecord = new Account(Name = 'Rejected Account');
-    insert accountRecord;
-    Opportunity opportunity = new Opportunity(
-      Name = 'Rejected Opportunity',
-      AccountId = accountRecord.Id,
-      StageName = 'Prospecting',
-      CloseDate = Date.today().addDays(30)
-    );
-    insert opportunity;
-    Quote quoteRecord = new Quote(
-      Name = 'Draft Quote',
-      OpportunityId = opportunity.Id,
-      Status = 'Draft'
-    );
-    insert quoteRecord;
+    Quote quoteRecord = quoteByName(DRAFT_ONE_LINE);
 
     Assert.isFalse(
       LegacyQuoteToOrderService.convert(new Set<Id>{ quoteRecord.Id })
@@ -250,7 +219,7 @@ private class LegacyQuoteToOrderServiceTest {
     );
     Assert.areEqual(
       0,
-      [SELECT COUNT() FROM Order WHERE AccountId = :accountRecord.Id]
+      [SELECT COUNT() FROM Order WHERE AccountId = :quoteRecord.AccountId]
     );
   }
 
@@ -260,16 +229,9 @@ private class LegacyQuoteToOrderServiceTest {
    */
   @IsTest
   static void convertsMultipleQuotesWithBulkQueriesAndDml() {
-    QuoteToOrderTestDataFactory.Graph first = QuoteToOrderTestDataFactory.createAcceptedQuote(
-      2
-    );
-    QuoteToOrderTestDataFactory.Graph second = QuoteToOrderTestDataFactory.createAcceptedQuote(
-      1
-    );
-    Set<Id> quoteIds = new Set<Id>{
-      first.quoteRecord.Id,
-      second.quoteRecord.Id
-    };
+    Quote first = quoteByName(ACCEPTED_TWO_LINES);
+    Quote second = quoteByName(ACCEPTED_ONE_LINE);
+    Set<Id> quoteIds = new Set<Id>{ first.Id, second.Id };
 
     Test.startTest();
     Map<Id, QuoteToOrderResult> resultsByQuoteId = LegacyQuoteToOrderService.convert(
@@ -279,8 +241,8 @@ private class LegacyQuoteToOrderServiceTest {
 
     Assert.areEqual(2, resultsByQuoteId.size());
     Set<Id> orderIds = new Set<Id>{
-      resultsByQuoteId.get(first.quoteRecord.Id).orderId,
-      resultsByQuoteId.get(second.quoteRecord.Id).orderId
+      resultsByQuoteId.get(first.Id).orderId,
+      resultsByQuoteId.get(second.Id).orderId
     };
     Assert.areEqual(2, [SELECT COUNT() FROM Order WHERE Id IN :orderIds]);
     Assert.areEqual(
@@ -302,22 +264,25 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies a mixed batch converts only eligible Quotes. */
   @IsTest
   static void mixedEligibilityTest() {
-    QuoteToOrderTestDataFactory.Graph accepted = QuoteToOrderTestDataFactory.createAcceptedQuote(
-      1
-    );
-    QuoteToOrderTestDataFactory.Graph draft = QuoteToOrderTestDataFactory.createAcceptedQuote(
-      1
-    );
-    draft.quoteRecord.Status = 'Draft';
-    update draft.quoteRecord;
+    Quote accepted = quoteByName(ACCEPTED_ONE_LINE);
+    Quote draft = quoteByName(DRAFT_ONE_LINE);
 
     Map<Id, QuoteToOrderResult> resultsByQuoteId = LegacyQuoteToOrderService.convert(
-      new Set<Id>{ accepted.quoteRecord.Id, draft.quoteRecord.Id }
+      new Set<Id>{ accepted.Id, draft.Id }
     );
 
     Assert.areEqual(1, resultsByQuoteId.size());
-    Assert.isTrue(resultsByQuoteId.containsKey(accepted.quoteRecord.Id));
-    Assert.isFalse(resultsByQuoteId.containsKey(draft.quoteRecord.Id));
+    Assert.isTrue(resultsByQuoteId.containsKey(accepted.Id));
+    Assert.isFalse(resultsByQuoteId.containsKey(draft.Id));
+  }
+
+  private static Quote quoteByName(String quoteName) {
+    return [
+      SELECT Id, AccountId, Pricebook2Id, Status, Converted_Order__c
+      FROM Quote
+      WHERE Name = :quoteName
+      LIMIT 1
+    ];
   }
 
   private static void assertConversionError(

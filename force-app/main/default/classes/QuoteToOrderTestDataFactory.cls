@@ -13,11 +13,19 @@ public class QuoteToOrderTestDataFactory {
   }
 
   public static Graph createAcceptedQuote(Integer lineCount) {
+    return createQuote('Repository Test Quote', lineCount, 'Accepted');
+  }
+
+  public static Graph createQuote(
+    String quoteName,
+    Integer lineCount,
+    String status
+  ) {
     Graph graph = new Graph();
-    graph.account = new Account(Name = 'Repository Test Account');
+    graph.account = new Account(Name = quoteName + ' Account');
     insert graph.account;
     graph.opportunity = new Opportunity(
-      Name = 'Repository Test Opportunity',
+      Name = quoteName + ' Opportunity',
       AccountId = graph.account.Id,
       StageName = 'Prospecting',
       CloseDate = Date.today().addDays(30),
@@ -28,7 +36,7 @@ public class QuoteToOrderTestDataFactory {
     List<Product2> products = new List<Product2>();
     for (Integer index = 0; index < lineCount; index++) {
       products.add(
-        new Product2(Name = 'Repository Product ' + index, IsActive = true)
+        new Product2(Name = quoteName + ' Product ' + index, IsActive = true)
       );
     }
     insert products;
@@ -45,10 +53,10 @@ public class QuoteToOrderTestDataFactory {
     }
     insert graph.entries;
     graph.quoteRecord = new Quote(
-      Name = 'Repository Test Quote',
+      Name = quoteName,
       OpportunityId = graph.opportunity.Id,
       Pricebook2Id = Test.getStandardPricebookId(),
-      Status = 'Accepted'
+      Status = status
     );
     insert graph.quoteRecord;
     List<QuoteLineItem> lines = new List<QuoteLineItem>();
