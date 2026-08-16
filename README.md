@@ -1,10 +1,65 @@
 # Testable Apex brown-bag demo
 
-This Salesforce DX project contrasts a tightly coupled Quote-to-Order implementation with an interface-driven, constructor-injected service tested using Apex Mockery. It teaches the boundary between fast business-unit tests and focused Salesforce integration tests without claiming a universal performance ratio.
+This Salesforce DX project contrasts a tightly coupled Quote-to-Order implementation with an interface-driven, constructor-injected service tested using Apex Mockery. Its measured results demonstrate the practical payoff: isolated business-unit tests provide substantially faster feedback, while a focused integration suite proves that the complete Salesforce data flow still works.
 
 ## Architecture
 
-`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete methods on `LegacyQuoteToOrderDAO` and the static `LegacyQuoteConversionPolicy`. As a transitional step, the same class implements `IQuoteToOrderService`; its instance method delegates directly to the existing static implementation while all legacy dependencies remain hardwired. The refactored path uses injectable `IQuoteToOrderDAO`, `IDateProvider`, and `IQuoteConversionPolicy` dependencies and implements `IQuoteToOrderService` directly. Both paths expose the same bulk result contract and silently skip Quotes that are not in the configured status. `QuoteConversionPolicy` is a thin instance adapter that delegates to `LegacyQuoteConversionPolicy`, while the existing static implementation remains the production source of truth. `QuoteTrigger` reads `Use_Legacy_Implementation__c`, selects one `IQuoteToOrderService` implementation, and passes that single dependency to `QuoteTriggerHandler`. `QuoteTriggerDependencies` composes the real production implementations. The end-to-end trigger tests use the actual Custom Metadata record, so changing the flag manually exercises the same assertions through the other implementation. The new service owns rules and mapping, its DAO owns persistence orchestration, and an injected `IDMLExecutor` isolates the actual `Database` calls.
+The diagrams begin at the two services and focus on how each implementation obtains the dependencies needed to convert Quotes. Both implementations are bulkified, return the same result type, and skip Quotes whose status is not eligible.
+
+### Legacy implementation: dependencies are hardwired
+
+```mermaid
+flowchart TB
+  LegacyService["LegacyQuoteToOrderService"]
+  StaticLogic["Static conversion method"]
+  LegacyPolicy["LegacyQuoteConversionPolicy"]
+  Metadata["Quote Conversion Policy metadata"]
+  LegacyDAO["LegacyQuoteToOrderDAO"]
+  SOQL["SOQL"]
+  Database["Database DML"]
+  SystemDate["Date.today"]
+
+  LegacyService -->|"instance method delegates"| StaticLogic
+
+  StaticLogic -->|"hardwired static call"| LegacyPolicy
+  LegacyPolicy --> Metadata
+
+  StaticLogic -->|"hardwired static call"| LegacyDAO
+  LegacyDAO --> SOQL
+  LegacyDAO --> Database
+
+  StaticLogic -->|"hardwired system clock"| SystemDate
+```
+
+The interface around `LegacyQuoteToOrderService` is a transitional adapter: it lets the trigger and handler treat both implementations uniformly, but it deliberately does not change the legacy internals. Static policy access, data access, DML, and the system clock remain tightly coupled and therefore require data-heavy tests.
+
+### Refactored implementation: dependencies are supplied explicitly
+
+```mermaid
+flowchart TB
+  Service["QuoteToOrderService"]
+
+  Service -->|"IQuoteToOrderDAO"| DAOInterface["IQuoteToOrderDAO"]
+  DAOInterface -.->|"implemented by"| DAO["QuoteToOrderDAO"]
+  DAO --> SOQL["SOQL"]
+  DAO -->|"IDMLExecutor"| ExecutorInterface["IDMLExecutor"]
+  ExecutorInterface -.->|"implemented by"| Executor["DMLExecutor"]
+  Executor --> Database["Database DML"]
+
+  Service -->|"IDateProvider"| DateInterface["IDateProvider"]
+  DateInterface -.->|"implemented by"| Clock["SystemDateProvider"]
+
+  Service -->|"IQuoteConversionPolicy"| PolicyInterface["IQuoteConversionPolicy"]
+  PolicyInterface -.->|"implemented by"| Policy["QuoteConversionPolicy"]
+  Policy -->|"transitional wrapper"| LegacyPolicy["LegacyQuoteConversionPolicy"]
+  LegacyPolicy --> Metadata["Quote Conversion Policy metadata"]
+```
+
+`QuoteTriggerDependencies` is the production composition root: it creates the concrete DAO, clock, and policy implementations and supplies them to the service. Business rules and record mapping stay in `QuoteToOrderService`; persistence orchestration stays in `QuoteToOrderDAO`; actual writes pass through the reusable `IDMLExecutor`. Tests can replace each interface independently. `QuoteConversionPolicy` also shows incremental migration by wrapping the existing static policy lookup instead of requiring every legacy dependency to be redesigned at once.
+
+### Coexistence during migration
+
+The trigger-side components sit outside the service comparison. `QuoteTrigger` reads the feature flag, obtains either service from `QuoteTriggerDependencies`, and injects the selected `IQuoteToOrderService` into `QuoteTriggerHandler`. This wiring demonstrates how a tightly coupled implementation and a refactored implementation can coexist behind one contract while callers migrate incrementally. It does not change the internal architecture shown in either service diagram.
 
 All production classes use `inherited sharing`: callers determine record-sharing behavior, while the permission set grants explicit CRUD/FLS for manual demonstration. This sample is intentionally not a production-grade security framework.
 
@@ -198,11 +253,3 @@ done
 ```
 
 In each JSON file, use `result.tests[].MethodName` and `result.tests[].RunTime` for the per-method measurements and `result.summary.testExecutionTime` for the complete Salesforce test execution time. Measure the CLI process externally when wall-clock time is also required.
-
-## Live presentation
-
-Follow [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md): legacy service/test, baseline timing, interfaces/injected constructor, factory composition, mock happy path, mock failure path, timing comparison, then retained integration tests.
-
-## Limitations and cleanup
-
-This excludes CPQ/Revenue Cloud, UI, Flow, multi-currency, tax/discount logic, and quote synchronization. Tests create transactional records that Salesforce rolls back automatically. No persistent demo business records are created, so no record cleanup is required. Removing deployed metadata is intentionally not scripted; use a reviewed metadata-deletion process if needed. Apex Mockery is never modified by this project.
