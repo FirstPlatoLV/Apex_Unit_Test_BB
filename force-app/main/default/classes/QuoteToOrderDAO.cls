@@ -1,4 +1,14 @@
 public inherited sharing class QuoteToOrderDAO implements IQuoteToOrderDAO {
+    private final IDMLExecutor dml;
+
+    public QuoteToOrderDAO() {
+        this(new DMLExecutor());
+    }
+
+    public QuoteToOrderDAO(IDMLExecutor dml) {
+        this.dml = dml;
+    }
+
     public Map<Id, Quote> findQuotes(Set<Id> quoteIds) {
         return new Map<Id, Quote>([
             SELECT Id, Status, Converted_Order__c, AccountId, Pricebook2Id
@@ -18,26 +28,35 @@ public inherited sharing class QuoteToOrderDAO implements IQuoteToOrderDAO {
         quoteIds.sort();
         List<Order> orders = new List<Order>();
         for (Id quoteId : quoteIds) orders.add(ordersByQuoteId.get(quoteId));
-        insert orders;
+        List<SObject> orderRecords = new List<SObject>();
+        orderRecords.addAll(orders);
+        Database.SaveResult[] orderResults = dml.insertRecords(orderRecords, true);
         Map<Id, Id> orderIdsByQuoteId = new Map<Id, Id>();
         List<OrderItem> allItems = new List<OrderItem>();
         for (Integer index = 0; index < quoteIds.size(); index++) {
             Id quoteId = quoteIds[index];
-            orderIdsByQuoteId.put(quoteId, orders[index].Id);
+            Id orderId = orderResults[index].getId();
+            orderIdsByQuoteId.put(quoteId, orderId);
             for (OrderItem item : itemsByQuoteId.get(quoteId)) {
-                item.OrderId = orders[index].Id;
+                item.OrderId = orderId;
                 allItems.add(item);
             }
         }
-        insert allItems;
+        List<SObject> itemRecords = new List<SObject>();
+        itemRecords.addAll(allItems);
+        dml.insertRecords(itemRecords, true);
         return orderIdsByQuoteId;
     }
 
     public void markQuotesConverted(Map<Id, Id> orderIdsByQuoteId) {
         List<Quote> updates = new List<Quote>();
-        for (Id quoteId : orderIdsByQuoteId.keySet()) {
+        List<Id> quoteIds = new List<Id>(orderIdsByQuoteId.keySet());
+        quoteIds.sort();
+        for (Id quoteId : quoteIds) {
             updates.add(new Quote(Id = quoteId, Converted_Order__c = orderIdsByQuoteId.get(quoteId)));
         }
-        update updates;
+        List<SObject> quoteRecords = new List<SObject>();
+        quoteRecords.addAll(updates);
+        dml.updateRecords(quoteRecords, true);
     }
 }

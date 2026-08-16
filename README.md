@@ -4,7 +4,7 @@ This Salesforce DX project contrasts a tightly coupled Quote-to-Order implementa
 
 ## Architecture
 
-`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete static methods on `LegacyQuoteToOrderDAO`. The refactored path mirrors that shape with one injectable `IQuoteToOrderDAO`, implemented by `QuoteToOrderDAO`, plus `IDateProvider`. Both services expose bulk conversion; the new service owns rules and mapping while its DAO owns persistence. `QuoteToOrderServiceFactory` composes production dependencies, and `QuoteToOrder` preserves a static caller API.
+`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete static methods on `LegacyQuoteToOrderDAO`. The refactored path mirrors that shape with one injectable `IQuoteToOrderDAO`, implemented by `QuoteToOrderDAO`, plus `IDateProvider`. Both services expose bulk conversion; the new service owns rules and mapping, its DAO owns persistence orchestration, and an injected `IDMLExecutor` isolates the actual `Database` calls. `QuoteToOrderServiceFactory` composes production dependencies, and `QuoteToOrder` preserves a static caller API.
 
 All production classes use `inherited sharing`: callers determine record-sharing behavior, while the permission set grants explicit CRUD/FLS for manual demonstration. This sample is intentionally not a production-grade security framework.
 
@@ -41,7 +41,7 @@ Apex Stub API mocks cannot cross a managed-package namespace boundary. This veri
 Bash equivalents with the same filenames are also provided. Manual commands:
 
 ```text
-sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests QuoteToOrderFacadeTest --wait 30
+sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests QuoteToOrderFacadeTest --wait 30
 sf org assign permset --name Brownbag_Testable_Apex --target-org unittestorg
 sf apex run test --target-org unittestorg --tests LegacyQuoteToOrderServiceTest --synchronous --result-format json
 sf apex run test --target-org unittestorg --tests QuoteToOrderServiceTest --synchronous --result-format json
@@ -52,7 +52,8 @@ sf org open --target-org unittestorg
 
 - `LegacyQuoteToOrderService` / `LegacyQuoteToOrderDAO` / `LegacyQuoteToOrderServiceTest`: bulk-safe static coupling through set-based query/DML wrappers and complete persisted data graphs.
 - `QuoteToOrderService` / `QuoteToOrderServiceTest`: injected business logic and seven Mockery tests with no SOQL/DML.
-- `QuoteToOrderDAO` / `QuoteToOrderDAOTest`: combined, bulk query/DML behavior behind one injectable contract.
+- `QuoteToOrderDAO` / `QuoteToOrderDAOTest`: combined, bulk persistence behavior with mapping tested independently through a mocked `IDMLExecutor`.
+- `DMLExecutor`: a reusable, object-agnostic wrapper around bulk insert, upsert, update, delete, and undelete `Database` calls, including `allOrNone`, external-ID, and access-level parameters.
 - `QuoteToOrderServiceFactory`: production composition root.
 - `QuoteToOrder` / `QuoteToOrderFacadeTest`: static compatibility API and integration path.
 - `BrownbagDemoPolicy`: reads the `Default` Custom Metadata configuration.
