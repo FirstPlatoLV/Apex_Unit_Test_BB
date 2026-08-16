@@ -1,7 +1,9 @@
 @IsTest
 private class QuoteToOrderDAOTest {
-    private static final Id QUOTE_ONE_ID='0Q0000000000001AAA', QUOTE_TWO_ID='0Q0000000000002AAA';
-    private static final Id ORDER_ONE_ID='801000000000001AAA', ORDER_TWO_ID='801000000000002AAA';
+    private static final Id QUOTE_ONE_ID=TestUtility.getFakeId(Quote.SObjectType);
+    private static final Id QUOTE_TWO_ID=TestUtility.getFakeId(Quote.SObjectType);
+    private static final Id ORDER_ONE_ID=TestUtility.getFakeId(Order.SObjectType);
+    private static final Id ORDER_TWO_ID=TestUtility.getFakeId(Order.SObjectType);
 
     @IsTest static void saveOrdersTest() {
         Mock dmlMock=Mock.forType(IDMLExecutor.class); IDMLExecutor dml=(IDMLExecutor)dmlMock.stub;

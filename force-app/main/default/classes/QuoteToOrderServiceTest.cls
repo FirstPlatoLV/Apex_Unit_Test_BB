@@ -1,7 +1,11 @@
 @IsTest
 private class QuoteToOrderServiceTest {
-    private static final Id QUOTE_ID='0Q0000000000001AAA', ACCOUNT_ID='001000000000001AAA', PRICEBOOK_ID='01s000000000001AAA';
-    private static final Id ENTRY_ONE_ID='01u000000000001AAA', ENTRY_TWO_ID='01u000000000002AAA', ORDER_ID='801000000000001AAA';
+    private static final Id QUOTE_ID=TestUtility.getFakeId(Quote.SObjectType);
+    private static final Id ACCOUNT_ID=TestUtility.getFakeId(Account.SObjectType);
+    private static final Id PRICEBOOK_ID=TestUtility.getFakeId(Pricebook2.SObjectType);
+    private static final Id ENTRY_ONE_ID=TestUtility.getFakeId(PricebookEntry.SObjectType);
+    private static final Id ENTRY_TWO_ID=TestUtility.getFakeId(PricebookEntry.SObjectType);
+    private static final Id ORDER_ID=TestUtility.getFakeId(Order.SObjectType);
     private static final Date FIXED_DATE=Date.newInstance(2030,4,15);
     private class DAOFailureException extends Exception {}
     private class Fixture {
