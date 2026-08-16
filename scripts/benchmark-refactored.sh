@@ -23,7 +23,8 @@ for run in $(seq 0 "$runs"); do
   sf apex run test --target-org "$target_org" "${test_args[@]}" --wait 30 --result-format json >"$raw_dir/$label.json"
   wall_ms=$(( $(date +%s%3N) - start_ms ))
   if [[ "$run" != 0 ]]; then
-    methods=$(jq -r '.result.summary.testsRan' "$raw_dir/$label.json")
+    # Count actual test methods consistently with the legacy runner.
+    methods=$(jq -r '.result.tests | length' "$raw_dir/$label.json")
     salesforce_ms=$(jq -r '.result.summary.testExecutionTime' "$raw_dir/$label.json" | tr -dc '0-9')
     echo "refactored,$run,${#classes[@]},$methods,$salesforce_ms,$wall_ms" >>"$results_dir/summary.csv"
   fi

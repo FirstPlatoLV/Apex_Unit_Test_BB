@@ -157,18 +157,18 @@ The benchmark excludes `QuoteTriggerTest`, the reusable `DMLExecutorTest`, and s
 - Legacy: `LegacyQuoteToOrderServiceTest` and `LegacyQuoteConversionPolicyTest`.
 - Refactored: `QuoteToOrderServiceTest`, `QuoteToOrderDAOTest`, `SystemDateProviderTest`, and `QuoteConversionPolicyTest`.
 
-Each suite ran once for warm-up followed by five measured runs. The runs within each sample were submitted and completed sequentially. Salesforce execution time is the platform-reported Apex test duration; wall time additionally includes CLI startup, network latency, queueing, and result processing.
+Each suite used one warm-up followed by five measured runs, submitted and completed sequentially. Salesforce execution time is the platform-reported Apex test duration; wall time additionally includes CLI startup, network latency, queueing, and result processing.
 
-> **Historical benchmark note:** the saved measurements below predate the consolidation of branch-specific tests into one `<methodName>Test` per production method. They remain useful as repository history, but the benchmark scripts must be rerun before presenting the figures as measurements of the current suite definitions.
+| Suite      | Test methods | `@TestSetup` executions | Salesforce `testsRan` | Salesforce median | Salesforce range | Wall median |      Wall range |
+| ---------- | -----------: | ----------------------: | --------------------: | ----------------: | ---------------: | ----------: | --------------: |
+| Legacy     |            9 |                       1 |                    10 |          1,396 ms |     964–1,568 ms |    7,508 ms | 5,494–11,524 ms |
+| Refactored |           16 |                       0 |                    16 |            213 ms |       102–322 ms |    3,481 ms | 3,466–10,563 ms |
 
-| Suite      | Salesforce median | Salesforce range | Wall median |      Wall range |
-| ---------- | ----------------: | ---------------: | ----------: | --------------: |
-| Legacy     |          2,331 ms |   1,296–2,779 ms |    9,513 ms |  6,498–9,535 ms |
-| Refactored |            306 ms |       102–492 ms |    5,490 ms | 3,459–10,506 ms |
+The legacy suite contains **9 test methods** across 2 classes, plus one `@TestSetup` execution, so Salesforce reports `testsRan: 10`. The refactored suite contains **16 test methods** across 4 classes and no `@TestSetup`, so Salesforce reports `testsRan: 16`. Salesforce's `testExecutionTime` includes the legacy setup execution; only the displayed method count excludes it. The raw number of tests is not a measure of equivalent work: one legacy `convertTest` contains several scenarios and crosses shared setup, SOQL, metadata, and DML, while one isolated helper test may execute only an in-memory transformation. Test count is nevertheless meaningful context here because the refactored suite executes six more Salesforce-reported test units and still has the lower platform time.
 
-In these measurements, the refactored suite used 86.9% less Salesforce execution time and had a 7.6× lower median. Its median wall time was 42.3% lower. Results vary with org load and automation; the measured advantage demonstrates the feedback-speed benefit of isolated tests rather than promising an identical ratio in every org.
+In this sample, the refactored median was **84.7% lower** and **6.6× faster** in Salesforce execution time. Its wall-time median was **53.6% lower**, but wall results are noisier because CLI startup, network latency, queueing, and result processing dominate short test runs. The result demonstrates the feedback-speed benefit of isolated tests rather than promising an identical ratio in every org or run.
 
-The legacy timing includes the one shared `@TestSetup` execution, but its method count reports only the 12 actual test methods. The current results are preserved in the [legacy summary](benchmark-results/legacy-20260816-213442/summary.md), [legacy CSV](benchmark-results/legacy-20260816-213442/summary.csv), [legacy raw JSON](benchmark-results/legacy-20260816-213442/raw/), [refactored summary](benchmark-results/refactored-20260816-213544/summary.md), [refactored CSV](benchmark-results/refactored-20260816-213544/summary.csv), and [refactored raw JSON](benchmark-results/refactored-20260816-213544/raw/).
+The current results are preserved in the [legacy summary](benchmark-results/legacy-20260816-230546/summary.md), [legacy CSV](benchmark-results/legacy-20260816-230546/summary.csv), [legacy raw JSON](benchmark-results/legacy-20260816-230546/raw/), [refactored summary](benchmark-results/refactored-20260816-230826/summary.md), [refactored CSV](benchmark-results/refactored-20260816-230826/summary.csv), and [refactored raw JSON](benchmark-results/refactored-20260816-230826/raw/).
 
 Run `benchmark-tests.ps1` or `benchmark-tests.sh` to execute both current suites. Use `benchmark-legacy` or `benchmark-refactored` with the matching script extension to measure one side independently. Each runner creates a timestamped result directory instead of overwriting prior evidence.
 
@@ -178,76 +178,28 @@ Run `benchmark-tests.ps1` or `benchmark-tests.sh` to execute both current suites
 
 After one warm-up, five measured synchronous runs produced:
 
-| Run | Salesforce execution | Wall time |
-| --: | -------------------: | --------: |
-|   1 |             1,411 ms |  3,474 ms |
-|   2 |               977 ms |  3,464 ms |
-|   3 |             1,814 ms |  4,492 ms |
-|   4 |             1,307 ms |  3,472 ms |
-|   5 |               937 ms |  3,472 ms |
+| Suite        | Test methods | `@TestSetup` executions | Salesforce `testsRan` | Salesforce median | Salesforce range | Wall median |     Wall range |
+| ------------ | -----------: | ----------------------: | --------------------: | ----------------: | ---------------: | ----------: | -------------: |
+| DML executor |            5 |                       0 |                     5 |          1,311 ms |   1,121–1,428 ms |    3,491 ms | 3,461–4,485 ms |
 
-The Salesforce median was **1,307 ms** with a **937–1,814 ms** range. Median wall time was **3,472 ms** with a **3,464–4,492 ms** range. These measurements describe the one-time regression cost of the shared DML abstraction; they are not added to the refactored service timing.
+The suite contains **5 test methods** across 1 class, has no `@TestSetup`, and Salesforce reports `testsRan: 5`. The Salesforce median was **1,311 ms** with a **1,121–1,428 ms** range. Median wall time was **3,491 ms** with a **3,461–4,485 ms** range. These measurements describe the one-time regression cost of the shared DML abstraction; they are not added to the refactored service timing.
 
-The saved [DML executor summary](benchmark-results/dml-executor-20260816-201011/summary.md), [CSV measurements](benchmark-results/dml-executor-20260816-201011/summary.csv), and [raw CLI JSON](benchmark-results/dml-executor-20260816-201011/raw/) preserve the infrastructure benchmark.
-
-### Legacy end-to-end timing — historical two-method snapshot
-
-For this measurement, `Use_Legacy_Implementation__c` was manually enabled in the org. `QuoteTriggerTest` used the actual Custom Metadata record and production dependencies; it did not mock or override the policy, trigger handler, legacy service, DAO, or DML. The two methods cover successful Quote conversion and rejection of a non-eligible status.
-
-After one warm-up, five measured synchronous runs produced the following per-method results:
-
-| Run | `quoteTriggerTest` | `nonEligibleStatusTest` | Suite Salesforce | Wall time |
-| --: | -----------------: | ----------------------: | ---------------: | --------: |
-|   1 |           1,092 ms |                  570 ms |         1,676 ms |  4,463 ms |
-|   2 |           1,288 ms |                  730 ms |         2,043 ms |  4,500 ms |
-|   3 |             584 ms |                  458 ms |         1,051 ms |  3,486 ms |
-|   4 |             617 ms |                  460 ms |         1,085 ms |  3,450 ms |
-|   5 |             585 ms |                  355 ms |           951 ms |  3,464 ms |
-
-Per-method findings:
-
-- `quoteTriggerTest`, which performs the successful Quote-to-Order conversion: median **617 ms**, range **584–1,288 ms**.
-- `nonEligibleStatusTest`, which verifies that an ineligible status creates no Order: median **460 ms**, range **355–730 ms**.
-- Complete E2E suite: Salesforce median **1,085 ms**, range **951–2,043 ms**.
-- Wall time: median **3,486 ms**, range **3,450–4,500 ms**.
-
-This E2E timing is reported separately from the service-suite benchmark because it measures the entire trigger, metadata, query, mapping, and persistence path.
-
-The saved [detailed legacy E2E summary](benchmark-results/e2e-legacy-detailed-20260816-201339/summary.md), [suite CSV](benchmark-results/e2e-legacy-detailed-20260816-201339/suite-summary.csv), [per-method CSV](benchmark-results/e2e-legacy-detailed-20260816-201339/method-summary.csv), and [raw CLI JSON](benchmark-results/e2e-legacy-detailed-20260816-201339/raw/) preserve the end-to-end benchmark.
-
-### Refactored end-to-end timing — historical two-method snapshot
-
-For this measurement, `Use_Legacy_Implementation__c` was manually disabled in the org. The same unmodified `QuoteTriggerTest` methods used the actual Custom Metadata record and the fully composed refactored service, DAO, DML executor, policy, and date provider.
-
-After one warm-up, five measured synchronous runs produced:
-
-| Run | `quoteTriggerTest` | `nonEligibleStatusTest` | Suite Salesforce | Wall time |
-| --: | -----------------: | ----------------------: | ---------------: | --------: |
-|   1 |           1,380 ms |                  693 ms |         2,086 ms |  4,475 ms |
-|   2 |             572 ms |                  424 ms |         1,002 ms |  3,474 ms |
-|   3 |           1,031 ms |                  660 ms |         1,706 ms |  4,481 ms |
-|   4 |             595 ms |                  442 ms |         1,047 ms |  3,501 ms |
-|   5 |           1,183 ms |                  702 ms |         1,899 ms |  7,507 ms |
-
-Per-method findings:
-
-- `quoteTriggerTest`: median **1,031 ms**, range **572–1,380 ms**.
-- `nonEligibleStatusTest`: median **660 ms**, range **424–702 ms**.
-- Complete E2E suite: Salesforce median **1,706 ms**, range **1,002–2,086 ms**.
-- Wall time: median **4,475 ms**, range **3,474–7,507 ms**.
-
-The saved [detailed refactored E2E summary](benchmark-results/e2e-refactored-detailed-20260816-201637/summary.md), [suite CSV](benchmark-results/e2e-refactored-detailed-20260816-201637/suite-summary.csv), [per-method CSV](benchmark-results/e2e-refactored-detailed-20260816-201637/method-summary.csv), and [raw CLI JSON](benchmark-results/e2e-refactored-detailed-20260816-201637/raw/) preserve the refactored end-to-end benchmark.
+The saved [DML executor summary](benchmark-results/dml-executor-20260816-231440/summary.md), [CSV measurements](benchmark-results/dml-executor-20260816-231440/summary.csv), and [raw CLI JSON](benchmark-results/dml-executor-20260816-231440/raw/) preserve the infrastructure benchmark. Re-run it with `benchmark-dml-executor.ps1 <ORG_ALIAS> 5` or `benchmark-dml-executor.sh <ORG_ALIAS> 5`.
 
 ### End-to-end comparison
 
-| Measurement             | Legacy median | Refactored median |
-| ----------------------- | ------------: | ----------------: |
-| `quoteTriggerTest`      |        617 ms |          1,031 ms |
-| `nonEligibleStatusTest` |        460 ms |            660 ms |
-| Complete Salesforce run |      1,085 ms |          1,706 ms |
-| Wall time               |      3,486 ms |          4,475 ms |
+`QuoteTriggerTest` was measured once with `Use_Legacy_Implementation__c` enabled and once with it disabled. The test reads the real Custom Metadata record and uses the complete production dependency graph selected by the trigger; it does not mock or override the policy, trigger handler, service, DAO, clock, or DML. Its single method covers both successful Quote conversion and rejection of a non-eligible status, so the two measurements exercise identical positive and negative scenarios.
 
-In these five-run samples, the refactored E2E median was higher. The ranges overlap substantially, and both paths perform the same real setup, SOQL, Order/OrderItem DML, Quote update, and trigger execution. This comparison validates equivalent production behavior; it does not isolate the unit-test speed benefit measured in the implementation benchmark above.
+Each path received one unmeasured warm-up followed by five measured synchronous runs. This E2E timing is reported separately from the service-suite benchmark because it measures the entire trigger, metadata lookup, query, mapping, and persistence path.
+
+| Path       | Test methods | `@TestSetup` executions | Salesforce `testsRan` | Salesforce median | Salesforce range | Wall median |     Wall range |
+| ---------- | -----------: | ----------------------: | --------------------: | ----------------: | ---------------: | ----------: | -------------: |
+| Legacy     |            1 |                       0 |                     1 |          1,276 ms |   1,222–2,118 ms |    3,483 ms | 3,467–5,469 ms |
+| Refactored |            1 |                       0 |                     1 |          1,453 ms |   1,222–1,463 ms |    4,463 ms | 3,465–5,504 ms |
+
+The refactored E2E median was 177 ms (13.9%) higher in Salesforce execution time and 980 ms (28.1%) higher in wall-clock time. The ranges overlap substantially, and both paths execute the same trigger, metadata lookup, setup, queries, mapping, DML, and assertions. These E2E measurements primarily verify equivalent production behavior; the implementation-specific benchmark above isolates the unit-testing speed difference.
+
+The saved legacy [summary](benchmark-results/e2e-legacy-20260816-231943/summary.md), [CSV measurements](benchmark-results/e2e-legacy-20260816-231943/summary.csv), and [raw CLI JSON](benchmark-results/e2e-legacy-20260816-231943/raw/), together with the refactored [summary](benchmark-results/e2e-refactored-20260816-232206/summary.md), [CSV measurements](benchmark-results/e2e-refactored-20260816-232206/summary.csv), and [raw CLI JSON](benchmark-results/e2e-refactored-20260816-232206/raw/), preserve both benchmark runs.
 
 ### Reproducing the current E2E measurement
 

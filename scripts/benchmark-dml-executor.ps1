@@ -5,26 +5,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
-$resultsDir = Join-Path $PSScriptRoot "..\benchmark-results\refactored-$timestamp"
+$resultsDir = Join-Path $PSScriptRoot "..\benchmark-results\dml-executor-$timestamp"
 $rawDir = Join-Path $resultsDir 'raw'
 New-Item -ItemType Directory -Force -Path $rawDir | Out-Null
-
-$classes = @(
-    'QuoteToOrderServiceTest',
-    'QuoteToOrderDAOTest',
-    'SystemDateProviderTest',
-    'QuoteConversionPolicyTest'
-)
-$testArguments = @()
-foreach ($className in $classes) {
-    $testArguments += @('--tests', $className)
-}
 
 $rows = @()
 for ($run = 0; $run -le $Runs; $run++) {
     $label = if ($run -eq 0) { 'warmup' } else { "run-$run" }
     $watch = [Diagnostics.Stopwatch]::StartNew()
-    $output = & sf apex run test --target-org $TargetOrg @testArguments --wait 30 --result-format json
+    $output = & sf apex run test --target-org $TargetOrg --tests DMLExecutorTest --synchronous --result-format json
     $exitCode = $LASTEXITCODE
     $watch.Stop()
     $output | Set-Content -Encoding utf8 (Join-Path $rawDir "$label.json")
@@ -34,32 +23,34 @@ for ($run = 0; $run -le $Runs; $run++) {
 
     if ($run -gt 0) {
         $json = $output | ConvertFrom-Json
+        $testMethods = @($json.result.tests).Count
+        $testsRan = [int]$json.result.summary.testsRan
         $rows += [pscustomobject]@{
-            suite = 'refactored'
+            suite = 'dml-executor'
             run = $run
-            test_classes = $classes.Count
-            # Count actual test methods consistently with the legacy runner.
-            test_methods = @($json.result.tests).Count
+            test_classes = 1
+            test_methods = $testMethods
+            test_setup_executions = $testsRan - $testMethods
+            tests_ran = $testsRan
             salesforce_ms = [int](($json.result.summary.testExecutionTime -replace '[^0-9]', ''))
             wall_ms = $watch.ElapsedMilliseconds
         }
     }
 }
 
-$summaryCsv = Join-Path $resultsDir 'summary.csv'
-$rows | Export-Csv -NoTypeInformation $summaryCsv
+$rows | Export-Csv -NoTypeInformation (Join-Path $resultsDir 'summary.csv')
 $salesforceTimes = @($rows.salesforce_ms | Sort-Object)
 $wallTimes = @($rows.wall_ms | Sort-Object)
 $middle = [math]::Floor($rows.Count / 2)
 $summary = @(
-    '# Refactored implementation benchmark',
+    '# DML executor infrastructure benchmark',
     '',
     "- Org alias: $TargetOrg",
     "- Date: $(Get-Date -Format yyyy-MM-dd)",
     '- API version: 65.0',
-    "- Suite: $($classes -join ', ')",
+    '- Suite: DMLExecutorTest',
     "- One warm-up plus $Runs measured runs, submitted and completed sequentially.",
-    "- Refactored: $($classes.Count) classes, $($rows[0].test_methods) methods; Salesforce median $($salesforceTimes[$middle]) ms (range $($salesforceTimes[0])-$($salesforceTimes[-1])); wall median $($wallTimes[$middle]) ms (range $($wallTimes[0])-$($wallTimes[-1]))."
+    "- DML executor: 1 class, $($rows[0].test_methods) methods, $($rows[0].test_setup_executions) @TestSetup executions, Salesforce testsRan $($rows[0].tests_ran); Salesforce median $($salesforceTimes[$middle]) ms (range $($salesforceTimes[0])-$($salesforceTimes[-1])); wall median $($wallTimes[$middle]) ms (range $($wallTimes[0])-$($wallTimes[-1]))."
 )
 $summary | Set-Content -Encoding utf8 (Join-Path $resultsDir 'summary.md')
 

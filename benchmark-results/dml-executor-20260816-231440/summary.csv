@@ -1,0 +1,6 @@
+"suite","run","test_classes","test_methods","test_setup_executions","tests_ran","salesforce_ms","wall_ms"
+"dml-executor","1","1","5","0","5","1356","3498"
+"dml-executor","2","1","5","0","5","1307","3491"
+"dml-executor","3","1","5","0","5","1428","4485"
+"dml-executor","4","1","5","0","5","1311","3461"
+"dml-executor","5","1","5","0","5","1121","3465"
