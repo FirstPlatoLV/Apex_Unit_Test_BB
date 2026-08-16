@@ -1,0 +1,11 @@
+suite,class,run,methods,salesforce_ms,wall_ms
+legacy,LegacyQuoteToOrderServiceTest,1,2,1363,3488
+legacy,LegacyQuoteToOrderServiceTest,2,2,776,3481
+legacy,LegacyQuoteToOrderServiceTest,3,2,1218,3465
+legacy,LegacyQuoteToOrderServiceTest,4,2,1136,3451
+legacy,LegacyQuoteToOrderServiceTest,5,2,1427,6488
+mock,QuoteToOrderServiceTest,1,7,206,2456
+mock,QuoteToOrderServiceTest,2,7,358,2444
+mock,QuoteToOrderServiceTest,3,7,378,7492
+mock,QuoteToOrderServiceTest,4,7,198,2448
+mock,QuoteToOrderServiceTest,5,7,390,2460

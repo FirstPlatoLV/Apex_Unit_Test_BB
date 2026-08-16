@@ -1,0 +1,135 @@
+{
+  "result": {
+    "summary": {
+      "failRate": "0%",
+      "failing": 0,
+      "hostname": "https://playful-wolf-8c6069-dev-ed.trailblaze.my.salesforce.com",
+      "orgId": "00DWU00000rCpMn2AK",
+      "outcome": "Passed",
+      "passRate": "100%",
+      "passing": 7,
+      "skipped": 0,
+      "testRunId": "",
+      "testStartTime": "2026-08-16T12:59:21.838Z",
+      "testsRan": 7,
+      "username": "maris.melbardis@playful-wolf-8c6069.com",
+      "commandTime": "0 ms",
+      "testExecutionTime": "390 ms",
+      "testTotalTime": "390 ms"
+    },
+    "tests": [
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "acceptedQuoteMapsAndPersistsTwoLines",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 187,
+        "FullName": "QuoteToOrderServiceTest.acceptedQuoteMapsAndPersistsTwoLines"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "alreadyConvertedQuoteDoesNotSave",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 35,
+        "FullName": "QuoteToOrderServiceTest.alreadyConvertedQuoteDoesNotSave"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "missingContextDoesNotSave",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 31,
+        "FullName": "QuoteToOrderServiceTest.missingContextDoesNotSave"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "missingQuoteDoesNotSave",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 27,
+        "FullName": "QuoteToOrderServiceTest.missingQuoteDoesNotSave"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "nonAcceptedQuoteDoesNotSave",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 30,
+        "FullName": "QuoteToOrderServiceTest.nonAcceptedQuoteDoesNotSave"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "persistenceFailurePropagatesAndDoesNotMark",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 32,
+        "FullName": "QuoteToOrderServiceTest.persistenceFailurePropagatesAndDoesNotMark"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "quoteWithoutLinesDoesNotSave",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 30,
+        "FullName": "QuoteToOrderServiceTest.quoteWithoutLinesDoesNotSave"
+      }
+    ]
+  }
+}

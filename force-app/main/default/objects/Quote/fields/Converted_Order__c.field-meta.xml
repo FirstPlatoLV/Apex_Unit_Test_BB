@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Converted_Order__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The Order created by the brown-bag Quote-to-Order demonstration.</description>
+    <label>Converted Order</label>
+    <referenceTo>Order</referenceTo>
+    <relationshipLabel>Converted Quotes</relationshipLabel>
+    <relationshipName>Converted_Quotes</relationshipName>
+    <required>false</required>
+    <type>Lookup</type>
+</CustomField>

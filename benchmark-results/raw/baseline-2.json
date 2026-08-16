@@ -1,0 +1,55 @@
+{
+  "result": {
+    "summary": {
+      "failRate": "0%",
+      "failing": 0,
+      "hostname": "https://playful-wolf-8c6069-dev-ed.trailblaze.my.salesforce.com",
+      "orgId": "00DWU00000rCpMn2AK",
+      "outcome": "Passed",
+      "passRate": "100%",
+      "passing": 2,
+      "skipped": 0,
+      "testRunId": "",
+      "testStartTime": "2026-08-16T12:53:10.293Z",
+      "testsRan": 2,
+      "username": "maris.melbardis@playful-wolf-8c6069.com",
+      "commandTime": "0 ms",
+      "testExecutionTime": "776 ms",
+      "testTotalTime": "776 ms"
+    },
+    "tests": [
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "acceptedQuoteCreatesOrderAndLines",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000Rzh0VYAR",
+          "Name": "LegacyQuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 593,
+        "FullName": "LegacyQuoteToOrderServiceTest.acceptedQuoteCreatesOrderAndLines"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "nonAcceptedQuoteIsRejected",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000Rzh0VYAR",
+          "Name": "LegacyQuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 174,
+        "FullName": "LegacyQuoteToOrderServiceTest.nonAcceptedQuoteIsRejected"
+      }
+    ]
+  }
+}
