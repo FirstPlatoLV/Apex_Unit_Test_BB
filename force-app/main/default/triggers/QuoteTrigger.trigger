@@ -7,6 +7,10 @@ trigger QuoteTrigger on Quote(
   after delete,
   after undelete
 ) {
-  new QuoteTriggerHandler(QuoteToOrderServiceFactory.createDefault())
+  new QuoteTriggerHandler(
+      new QuoteConversionPolicy(),
+      new LegacyQuoteToOrderService(),
+      QuoteToOrderServiceFactory.createDefault()
+    )
     .handle(Trigger.operationType, Trigger.new, Trigger.oldMap);
 }

@@ -1,6 +1,14 @@
 @IsTest
 private class LegacyQuoteToOrderServiceTest {
   @IsTest
+  static void convertQuotesTest() {
+    Assert.areEqual(
+      0,
+      new LegacyQuoteToOrderService().convertQuotes(new Set<Id>()).size()
+    );
+  }
+
+  @IsTest
   static void acceptedQuoteCreatesOrderAndLines() {
     Account accountRecord = new Account(Name = 'Brown-bag Account');
     insert accountRecord;

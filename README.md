@@ -4,7 +4,7 @@ This Salesforce DX project contrasts a tightly coupled Quote-to-Order implementa
 
 ## Architecture
 
-`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete methods on `LegacyQuoteToOrderDAO` and the static `LegacyQuoteConversionPolicy`. The refactored path mirrors that shape with injectable `IQuoteToOrderDAO`, `IDateProvider`, and `IQuoteConversionPolicy` dependencies, while `QuoteToOrderService` implements `IQuoteToOrderService` for trigger injection. Both services expose the same bulk-only `Map<Id, QuoteToOrderResult> convert(Set<Id>)` contract and silently skip Quotes that are not in the configured status. `QuoteConversionPolicy` is a thin instance adapter that delegates to `LegacyQuoteConversionPolicy`, allowing service tests to mock the accepted status while the existing static implementation remains the production source of truth. `QuoteTrigger` delegates every context to `QuoteTriggerHandler`; the handler forwards status transitions to its injected service, and the service applies conversion policy. The new service owns rules and mapping, its DAO owns persistence orchestration, and an injected `IDMLExecutor` isolates the actual `Database` calls. `QuoteToOrderServiceFactory` composes the production dependencies.
+`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete methods on `LegacyQuoteToOrderDAO` and the static `LegacyQuoteConversionPolicy`. Its `IQuoteToOrderService` adapter method delegates to the existing static implementation. The refactored path mirrors that shape with injectable `IQuoteToOrderDAO`, `IDateProvider`, and `IQuoteConversionPolicy` dependencies and also implements `IQuoteToOrderService`. Both services expose the same bulk result contract and silently skip Quotes that are not in the configured status. `QuoteConversionPolicy` is a thin instance adapter that delegates to `LegacyQuoteConversionPolicy`, allowing tests to mock the complete policy record while the existing static implementation remains the production source of truth. `QuoteTrigger` delegates every context to `QuoteTriggerHandler`; the handler uses `Use_Legacy_Implementation__c` to route status transitions to either injected service. The new service owns rules and mapping, its DAO owns persistence orchestration, and an injected `IDMLExecutor` isolates the actual `Database` calls. `QuoteToOrderServiceFactory` composes the production dependencies.
 
 All production classes use `inherited sharing`: callers determine record-sharing behavior, while the permission set grants explicit CRUD/FLS for manual demonstration. This sample is intentionally not a production-grade security framework.
 
@@ -59,8 +59,8 @@ Refactored-path tests use a method-oriented convention: each production method, 
 - `QuoteToOrderServiceFactory`: production composition root.
 - `LegacyQuoteConversionPolicy`: static access to the complete `Default` Custom Metadata policy record, used directly by the legacy service.
 - `QuoteConversionPolicy`: injectable adapter that delegates the complete policy lookup to `LegacyQuoteConversionPolicy` through `IQuoteConversionPolicy`.
-- `QuoteTriggerHandler` / `QuoteTriggerHandlerTest`: context routing and transition filtering tested with a mocked `IQuoteToOrderService`.
-- `QuoteTrigger` / `QuoteTriggerTest`: thin trigger wiring with bulk integration coverage.
+- `QuoteTriggerHandler` / `QuoteTriggerHandlerTest`: context routing and transition filtering tested with mocked policy and service abstractions.
+- `QuoteTrigger` / `QuoteTriggerTest`: thin trigger wiring plus mock-based verification that the metadata flag selects only the legacy or new implementation.
 
 The benchmark runs each suite once for warm-up and five measured times, sequentially and synchronously. It saves every raw CLI JSON response plus `summary.csv` and `summary.md`. Results vary with org load and automation.
 

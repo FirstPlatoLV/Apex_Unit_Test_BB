@@ -1,4 +1,8 @@
-public inherited sharing class LegacyQuoteToOrderService {
+public inherited sharing class LegacyQuoteToOrderService implements IQuoteToOrderService {
+  public Map<Id, QuoteToOrderResult> convertQuotes(Set<Id> quoteIds) {
+    return LegacyQuoteToOrderService.convert(quoteIds);
+  }
+
   public static Map<Id, QuoteToOrderResult> convert(Set<Id> quoteIds) {
     if (quoteIds == null || quoteIds.isEmpty()) {
       return new Map<Id, QuoteToOrderResult>();

@@ -49,6 +49,14 @@ private class QuoteToOrderServiceTest {
   }
 
   @IsTest
+  static void convertQuotesTest() {
+    Assert.areEqual(
+      0,
+      new Fixture().service().convertQuotes(new Set<Id>()).size()
+    );
+  }
+
+  @IsTest
   static void convertTest() {
     Fixture f = configured(
       quoteWith('Accepted', null, ACCOUNT_ID, PRICEBOOK_ID),

@@ -11,31 +11,52 @@ private class QuoteTriggerHandlerTest {
   );
   private static final Id ORDER_ID = TestUtility.getFakeId(Order.SObjectType);
 
+  private class Fixture {
+    Mock policyMock = Mock.forType(IQuoteConversionPolicy.class),
+      legacyServiceMock = Mock.forType(IQuoteToOrderService.class),
+      newServiceMock = Mock.forType(IQuoteToOrderService.class);
+    IQuoteConversionPolicy policy = (IQuoteConversionPolicy) policyMock.stub;
+    IQuoteToOrderService legacyService = (IQuoteToOrderService) legacyServiceMock.stub;
+    IQuoteToOrderService newService = (IQuoteToOrderService) newServiceMock.stub;
+
+    Fixture() {
+      policyMock.spyOn('getPolicy')
+        .returns(
+          new Quote_Conversion_Policy__mdt(
+            Accepted_Quote_Status__c = 'Accepted',
+            Use_Legacy_Implementation__c = false
+          )
+        );
+    }
+
+    QuoteTriggerHandler handler() {
+      return new QuoteTriggerHandler(policy, legacyService, newService);
+    }
+  }
+
   @IsTest
   static void constructorTest() {
-    Mock serviceMock = Mock.forType(IQuoteToOrderService.class);
-    IQuoteToOrderService service = (IQuoteToOrderService) serviceMock.stub;
+    Fixture f = new Fixture();
 
-    Assert.isNotNull(new QuoteTriggerHandler(service));
+    Assert.isNotNull(
+      new QuoteTriggerHandler(f.policy, f.legacyService, f.newService)
+    );
   }
 
   @IsTest
   static void handleTest() {
-    Mock serviceMock = Mock.forType(IQuoteToOrderService.class);
-    IQuoteToOrderService service = (IQuoteToOrderService) serviceMock.stub;
-    MethodSpy convert = serviceMock.spyOn('convert');
+    Fixture f = new Fixture();
+    MethodSpy convert = f.newServiceMock.spyOn('convertQuotes');
 
-    new QuoteTriggerHandler(service)
-      .handle(System.TriggerOperation.BEFORE_INSERT, null, null);
+    f.handler().handle(System.TriggerOperation.BEFORE_INSERT, null, null);
 
     Expect.that(convert).hasBeenCalledTimes(0);
   }
 
   @IsTest
   static void afterUpdateTest() {
-    Mock serviceMock = Mock.forType(IQuoteToOrderService.class);
-    IQuoteToOrderService service = (IQuoteToOrderService) serviceMock.stub;
-    MethodSpy convert = serviceMock.spyOn('convert');
+    Fixture f = new Fixture();
+    MethodSpy convert = f.newServiceMock.spyOn('convertQuotes');
     List<Quote> newQuotes = new List<Quote>{
       new Quote(Id = CHANGED_QUOTE_ID, Status = 'Accepted'),
       new Quote(Id = UNCHANGED_QUOTE_ID, Status = 'Draft'),
@@ -53,7 +74,7 @@ private class QuoteTriggerHandlerTest {
       ),
       CONVERTED_QUOTE_ID => new Quote(Id = CONVERTED_QUOTE_ID, Status = 'Draft')
     };
-    QuoteTriggerHandler handler = new QuoteTriggerHandler(service);
+    QuoteTriggerHandler handler = f.handler();
 
     handler.handle(
       System.TriggerOperation.AFTER_UPDATE,

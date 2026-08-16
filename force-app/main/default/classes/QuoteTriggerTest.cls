@@ -1,5 +1,73 @@
 @IsTest
 private class QuoteTriggerTest {
+  private static final Id QUOTE_ID = TestUtility.getFakeId(Quote.SObjectType);
+
+  @IsTest
+  static void legacyImplementationTest() {
+    Mock policyMock = Mock.forType(IQuoteConversionPolicy.class),
+      legacyServiceMock = Mock.forType(IQuoteToOrderService.class),
+      newServiceMock = Mock.forType(IQuoteToOrderService.class);
+    policyMock.spyOn('getPolicy')
+      .returns(
+        new Quote_Conversion_Policy__mdt(
+          Accepted_Quote_Status__c = 'Accepted',
+          Use_Legacy_Implementation__c = true
+        )
+      );
+    MethodSpy legacyConvert = legacyServiceMock.spyOn('convertQuotes'),
+      newConvert = newServiceMock.spyOn('convertQuotes');
+    QuoteTriggerHandler handler = new QuoteTriggerHandler(
+      (IQuoteConversionPolicy) policyMock.stub,
+      (IQuoteToOrderService) legacyServiceMock.stub,
+      (IQuoteToOrderService) newServiceMock.stub
+    );
+
+    handler.handle(
+      System.TriggerOperation.AFTER_UPDATE,
+      new List<Quote>{ new Quote(Id = QUOTE_ID, Status = 'Accepted') },
+      new Map<Id, Quote>{
+        QUOTE_ID => new Quote(Id = QUOTE_ID, Status = 'Draft')
+      }
+    );
+
+    Expect.that(legacyConvert)
+      .hasBeenCalledWith(Argument.jsonEquals(new Set<Id>{ QUOTE_ID }));
+    Expect.that(newConvert).hasBeenCalledTimes(0);
+  }
+
+  @IsTest
+  static void newImplementationTest() {
+    Mock policyMock = Mock.forType(IQuoteConversionPolicy.class),
+      legacyServiceMock = Mock.forType(IQuoteToOrderService.class),
+      newServiceMock = Mock.forType(IQuoteToOrderService.class);
+    policyMock.spyOn('getPolicy')
+      .returns(
+        new Quote_Conversion_Policy__mdt(
+          Accepted_Quote_Status__c = 'Accepted',
+          Use_Legacy_Implementation__c = false
+        )
+      );
+    MethodSpy legacyConvert = legacyServiceMock.spyOn('convertQuotes'),
+      newConvert = newServiceMock.spyOn('convertQuotes');
+    QuoteTriggerHandler handler = new QuoteTriggerHandler(
+      (IQuoteConversionPolicy) policyMock.stub,
+      (IQuoteToOrderService) legacyServiceMock.stub,
+      (IQuoteToOrderService) newServiceMock.stub
+    );
+
+    handler.handle(
+      System.TriggerOperation.AFTER_UPDATE,
+      new List<Quote>{ new Quote(Id = QUOTE_ID, Status = 'Accepted') },
+      new Map<Id, Quote>{
+        QUOTE_ID => new Quote(Id = QUOTE_ID, Status = 'Draft')
+      }
+    );
+
+    Expect.that(newConvert)
+      .hasBeenCalledWith(Argument.jsonEquals(new Set<Id>{ QUOTE_ID }));
+    Expect.that(legacyConvert).hasBeenCalledTimes(0);
+  }
+
   @IsTest
   static void quoteTriggerTest() {
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(

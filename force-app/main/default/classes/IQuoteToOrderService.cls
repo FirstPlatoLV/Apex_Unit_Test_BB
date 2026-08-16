@@ -1,3 +1,3 @@
 public interface IQuoteToOrderService {
-  Map<Id, QuoteToOrderResult> convert(Set<Id> quoteIds);
+  Map<Id, QuoteToOrderResult> convertQuotes(Set<Id> quoteIds);
 }
