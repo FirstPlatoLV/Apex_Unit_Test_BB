@@ -15,6 +15,24 @@ private class LegacyQuoteToOrderServiceTest {
   private static final String NO_LINES = 'No Lines';
   private static final String NO_ACCOUNT = 'No Account';
   private static final String NO_PRICE_BOOK = 'No Price Book';
+  private static final Id QUOTE_ID = TestUtility.getFakeId(Quote.SObjectType);
+  private static final Id QUOTE_TWO_ID = TestUtility.getFakeId(
+    Quote.SObjectType
+  );
+  private static final Id ACCOUNT_ID = TestUtility.getFakeId(
+    Account.SObjectType
+  );
+  private static final Id PRICEBOOK_ID = TestUtility.getFakeId(
+    Pricebook2.SObjectType
+  );
+  private static final Id ENTRY_ONE_ID = TestUtility.getFakeId(
+    PricebookEntry.SObjectType
+  );
+  private static final Id ENTRY_TWO_ID = TestUtility.getFakeId(
+    PricebookEntry.SObjectType
+  );
+  private static final Id ORDER_ID = TestUtility.getFakeId(Order.SObjectType);
+  private static final Date FIXED_DATE = Date.newInstance(2030, 4, 15);
 
   /**
    * Creates every persisted scenario once for the class. Salesforce gives each
@@ -279,8 +297,8 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies only Quotes matching the accepted status are selected. */
   @IsTest
   static void selectEligibleQuoteIdsTest() {
-    Quote accepted = quoteByName(ACCEPTED_ONE_LINE);
-    Quote draft = quoteByName(DRAFT_ONE_LINE);
+    Quote accepted = inMemoryQuote(QUOTE_ID, 'Accepted');
+    Quote draft = inMemoryQuote(QUOTE_TWO_ID, 'Draft');
 
     Set<Id> result = LegacyQuoteToOrderService.selectEligibleQuoteIds(
       new Map<Id, Quote>{ accepted.Id => accepted, draft.Id => draft },
@@ -290,69 +308,53 @@ private class LegacyQuoteToOrderServiceTest {
     Assert.areEqual(new Set<Id>{ accepted.Id }, result);
   }
 
-  /** Verifies queried Quote Lines are grouped by parent Quote ID. */
+  /** Verifies in-memory Quote Lines are grouped by parent Quote ID. */
   @IsTest
   static void groupQuoteLinesTest() {
-    Quote quoteRecord = quoteByName(ACCEPTED_TWO_LINES);
-    List<QuoteLineItem> lines = [
-      SELECT QuoteId, PricebookEntryId, Quantity, UnitPrice
-      FROM QuoteLineItem
-      WHERE QuoteId = :quoteRecord.Id
-    ];
+    List<QuoteLineItem> lines = inMemoryLines();
 
     Map<Id, List<QuoteLineItem>> result = LegacyQuoteToOrderService.groupQuoteLines(
       lines
     );
 
     Assert.areEqual(1, result.size());
-    Assert.areEqual(2, result.get(quoteRecord.Id).size());
+    Assert.areEqual(2, result.get(QUOTE_ID).size());
   }
 
   /** Verifies validated Quotes are mapped to draft Orders without DML. */
   @IsTest
   static void buildOrdersTest() {
-    Quote quoteRecord = quoteByName(ACCEPTED_ONE_LINE);
-    List<QuoteLineItem> lines = [
-      SELECT QuoteId, PricebookEntryId, Quantity, UnitPrice
-      FROM QuoteLineItem
-      WHERE QuoteId = :quoteRecord.Id
-    ];
-    Date effectiveDate = Date.newInstance(2030, 4, 15);
+    Quote quoteRecord = inMemoryQuote(QUOTE_ID, 'Accepted');
+    List<QuoteLineItem> lines = inMemoryLines();
 
     Order result = LegacyQuoteToOrderService.buildOrders(
-        new Set<Id>{ quoteRecord.Id },
-        new Map<Id, Quote>{ quoteRecord.Id => quoteRecord },
-        new Map<Id, List<QuoteLineItem>>{ quoteRecord.Id => lines },
-        effectiveDate
+        new Set<Id>{ QUOTE_ID },
+        new Map<Id, Quote>{ QUOTE_ID => quoteRecord },
+        new Map<Id, List<QuoteLineItem>>{ QUOTE_ID => lines },
+        FIXED_DATE
       )
-      .get(quoteRecord.Id);
+      .get(QUOTE_ID);
 
-    Assert.areEqual(quoteRecord.AccountId, result.AccountId);
-    Assert.areEqual(effectiveDate, result.EffectiveDate);
-    Assert.areEqual(quoteRecord.Pricebook2Id, result.Pricebook2Id);
+    Assert.areEqual(ACCOUNT_ID, result.AccountId);
+    Assert.areEqual(FIXED_DATE, result.EffectiveDate);
+    Assert.areEqual(PRICEBOOK_ID, result.Pricebook2Id);
     Assert.areEqual('Draft', result.Status);
   }
 
   /** Verifies Quote Lines are mapped to Order Items with the supplied Order ID. */
   @IsTest
   static void buildOrderItemsTest() {
-    Quote quoteRecord = quoteByName(ACCEPTED_ONE_LINE);
-    List<QuoteLineItem> lines = [
-      SELECT QuoteId, PricebookEntryId, Quantity, UnitPrice
-      FROM QuoteLineItem
-      WHERE QuoteId = :quoteRecord.Id
-    ];
-    Id orderId = TestUtility.getFakeId(Order.SObjectType);
+    List<QuoteLineItem> lines = inMemoryLines();
 
     List<OrderItem> result = LegacyQuoteToOrderService.buildOrderItems(
-        new Set<Id>{ quoteRecord.Id },
-        new Map<Id, List<QuoteLineItem>>{ quoteRecord.Id => lines },
-        new Map<Id, Id>{ quoteRecord.Id => orderId }
+        new Set<Id>{ QUOTE_ID },
+        new Map<Id, List<QuoteLineItem>>{ QUOTE_ID => lines },
+        new Map<Id, Id>{ QUOTE_ID => ORDER_ID }
       )
-      .get(quoteRecord.Id);
+      .get(QUOTE_ID);
 
-    Assert.areEqual(1, result.size());
-    Assert.areEqual(orderId, result[0].OrderId);
+    Assert.areEqual(2, result.size());
+    Assert.areEqual(ORDER_ID, result[0].OrderId);
     Assert.areEqual(lines[0].PricebookEntryId, result[0].PricebookEntryId);
     Assert.areEqual(lines[0].Quantity, result[0].Quantity);
     Assert.areEqual(lines[0].UnitPrice, result[0].UnitPrice);
@@ -361,20 +363,52 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies Order IDs and item counts are mapped to conversion results. */
   @IsTest
   static void buildResultsTest() {
-    Quote quoteRecord = quoteByName(ACCEPTED_ONE_LINE);
-    Id orderId = TestUtility.getFakeId(Order.SObjectType);
-
     QuoteToOrderResult result = LegacyQuoteToOrderService.buildResults(
-        new Set<Id>{ quoteRecord.Id },
-        new Map<Id, Id>{ quoteRecord.Id => orderId },
+        new Set<Id>{ QUOTE_ID },
+        new Map<Id, Id>{ QUOTE_ID => ORDER_ID },
         new Map<Id, List<OrderItem>>{
-          quoteRecord.Id => new List<OrderItem>{ new OrderItem() }
+          QUOTE_ID => new List<OrderItem>{ new OrderItem(), new OrderItem() }
         }
       )
-      .get(quoteRecord.Id);
+      .get(QUOTE_ID);
 
-    Assert.areEqual(orderId, result.orderId);
-    Assert.areEqual(1, result.orderItemCount);
+    Assert.areEqual(ORDER_ID, result.orderId);
+    Assert.areEqual(2, result.orderItemCount);
+  }
+
+  private static Quote inMemoryQuote(Id quoteId, String status) {
+    return (Quote) JSON.deserialize(
+      JSON.serialize(
+        new Map<String, Object>{
+          'Id' => quoteId,
+          'Status' => status,
+          'AccountId' => ACCOUNT_ID,
+          'Pricebook2Id' => PRICEBOOK_ID
+        }
+      ),
+      Quote.class
+    );
+  }
+
+  private static List<QuoteLineItem> inMemoryLines() {
+    List<Object> raw = new List<Object>{
+      new Map<String, Object>{
+        'QuoteId' => QUOTE_ID,
+        'PricebookEntryId' => ENTRY_ONE_ID,
+        'Quantity' => 2,
+        'UnitPrice' => 9
+      },
+      new Map<String, Object>{
+        'QuoteId' => QUOTE_ID,
+        'PricebookEntryId' => ENTRY_TWO_ID,
+        'Quantity' => 3,
+        'UnitPrice' => 24
+      }
+    };
+    return (List<QuoteLineItem>) JSON.deserialize(
+      JSON.serialize(raw),
+      List<QuoteLineItem>.class
+    );
   }
 
   private static Quote quoteByName(String quoteName) {
