@@ -102,7 +102,7 @@ when the Quote is converted, the system must:
 The service must reject conversion when:
 
 - the Quote does not exist;
-- the Quote status is not accepted;
+- Quotes outside the configured conversion status are ignored;
 - the Quote was already converted;
 - the Quote contains no lines;
 - required Account or Price Book context is missing.

@@ -11,23 +11,33 @@ public inherited sharing class LegacyQuoteToOrderService {
     if (quotesById.size() != quoteIds.size()) {
       throw new QuoteToOrderException('Quote does not exist');
     }
+    String acceptedStatus = LegacyQuoteConversionPolicy.acceptedQuoteStatus();
+    Set<Id> eligibleQuoteIds = new Set<Id>();
+    for (Id quoteId : quoteIds) {
+      if (quotesById.get(quoteId).Status == acceptedStatus) {
+        eligibleQuoteIds.add(quoteId);
+      }
+    }
+    if (eligibleQuoteIds.isEmpty()) {
+      return new Map<Id, Id>();
+    }
     Map<Id, List<QuoteLineItem>> linesByQuoteId = new Map<Id, List<QuoteLineItem>>();
     for (
-      QuoteLineItem quoteLine : LegacyQuoteToOrderDAO.findQuoteLines(quoteIds)
+      QuoteLineItem quoteLine : LegacyQuoteToOrderDAO.findQuoteLines(
+        eligibleQuoteIds
+      )
     ) {
       if (!linesByQuoteId.containsKey(quoteLine.QuoteId)) {
         linesByQuoteId.put(quoteLine.QuoteId, new List<QuoteLineItem>());
       }
       linesByQuoteId.get(quoteLine.QuoteId).add(quoteLine);
     }
-
-    String acceptedStatus = LegacyQuoteConversionPolicy.acceptedQuoteStatus();
-    List<Id> orderedQuoteIds = new List<Id>(quoteIds);
+    List<Id> orderedQuoteIds = new List<Id>(eligibleQuoteIds);
     orderedQuoteIds.sort();
     List<Order> orders = new List<Order>();
     for (Id currentQuoteId : orderedQuoteIds) {
       Quote quoteRecord = quotesById.get(currentQuoteId);
-      validate(quoteRecord, linesByQuoteId.get(currentQuoteId), acceptedStatus);
+      validate(quoteRecord, linesByQuoteId.get(currentQuoteId));
       orders.add(
         new Order(
           AccountId = quoteRecord.AccountId,
@@ -62,12 +72,8 @@ public inherited sharing class LegacyQuoteToOrderService {
 
   private static void validate(
     Quote quoteRecord,
-    List<QuoteLineItem> quoteLines,
-    String acceptedStatus
+    List<QuoteLineItem> quoteLines
   ) {
-    if (quoteRecord.Status != acceptedStatus) {
-      throw new QuoteToOrderException('Quote status is not accepted');
-    }
     if (quoteRecord.Converted_Order__c != null) {
       throw new QuoteToOrderException('Quote was already converted');
     }

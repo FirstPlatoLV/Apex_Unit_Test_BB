@@ -81,6 +81,14 @@ private class QuoteToOrderServiceTest {
     Assert.areEqual(0, f.service().convert((Set<Id>) null).size());
     assertRejected(configured(null, twoLines()), 'Quote does not exist');
 
+    Fixture skipped = configured(
+      quoteWith('Draft', null, ACCOUNT_ID, PRICEBOOK_ID),
+      twoLines()
+    );
+    MethodSpy skippedSave = skipped.daoMock.spyOn('saveOrders');
+    Assert.isNull(skipped.service().convert(QUOTE_ID));
+    Expect.that(skippedSave).hasBeenCalledTimes(0);
+
     Fixture failed = configured(
       quoteWith('Accepted', null, ACCOUNT_ID, PRICEBOOK_ID),
       twoLines()
@@ -103,13 +111,6 @@ private class QuoteToOrderServiceTest {
 
   @IsTest
   static void validateTest() {
-    assertRejected(
-      configured(
-        quoteWith('Draft', null, ACCOUNT_ID, PRICEBOOK_ID),
-        twoLines()
-      ),
-      'Quote status is not accepted'
-    );
     assertRejected(
       configured(
         quoteWith('Accepted', ORDER_ID, ACCOUNT_ID, PRICEBOOK_ID),

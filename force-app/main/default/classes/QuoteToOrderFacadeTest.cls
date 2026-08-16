@@ -23,5 +23,13 @@ private class QuoteToOrderFacadeTest {
       [SELECT Converted_Order__c FROM Quote WHERE Id = :graph.quoteRecord.Id]
       .Converted_Order__c
     );
+    Assert.areEqual(0, QuoteToOrder.convert(new Set<Id>()).size());
+
+    QuoteToOrderTestDataFactory.Graph skipped = QuoteToOrderTestDataFactory.createAcceptedQuote(
+      1
+    );
+    skipped.quoteRecord.Status = 'Draft';
+    update skipped.quoteRecord;
+    Assert.isNull(QuoteToOrder.convert(skipped.quoteRecord.Id));
   }
 }

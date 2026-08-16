@@ -93,7 +93,7 @@ private class LegacyQuoteToOrderServiceTest {
   }
 
   @IsTest
-  static void nonAcceptedQuoteIsRejected() {
+  static void nonAcceptedQuoteIsIgnored() {
     Account accountRecord = new Account(Name = 'Rejected Account');
     insert accountRecord;
     Opportunity opportunity = new Opportunity(
@@ -110,12 +110,7 @@ private class LegacyQuoteToOrderServiceTest {
     );
     insert quoteRecord;
 
-    try {
-      LegacyQuoteToOrderService.convert(quoteRecord.Id);
-      Assert.fail('Expected rejection');
-    } catch (QuoteToOrderException error) {
-      Assert.areEqual('Quote status is not accepted', error.getMessage());
-    }
+    Assert.isNull(LegacyQuoteToOrderService.convert(quoteRecord.Id));
     Assert.areEqual(
       0,
       [SELECT COUNT() FROM Order WHERE AccountId = :accountRecord.Id]
