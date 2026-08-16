@@ -320,19 +320,19 @@ Prefer an immutable or effectively immutable value object.
 
 ### 8.5 Composition root
 
-Create:
+Use:
 
 ```apex
-QuoteToOrderServiceFactory
+QuoteTriggerDependencies
 ```
 
 Recommended API:
 
 ```apex
-public static QuoteToOrderService createDefault()
+public static IQuoteToOrderService getNewService()
 ```
 
-This method constructs the real repositories and date provider, then injects them into the service.
+This method constructs the real DAO, date provider, and policy, then injects them into the service. The same class provides the narrow dependency overrides required to test trigger-level implementation selection.
 
 The service must not call this factory internally.
 
@@ -407,7 +407,7 @@ Create focused tests for:
 - `SalesforceQuoteRepository` query and conversion-marker update;
 - `SalesforceQuoteLineRepository` query behavior;
 - `SalesforceOrderRepository` insertion of one Order and its Order Items;
-- one factory-composition happy-path integration test using `QuoteToOrderServiceFactory.createDefault()`.
+- one composition-root happy-path integration test using `QuoteTriggerDependencies.getNewService()`.
 
 These tests may share a compact data factory. The factory must remain in test code and must not obscure which Salesforce records are required.
 

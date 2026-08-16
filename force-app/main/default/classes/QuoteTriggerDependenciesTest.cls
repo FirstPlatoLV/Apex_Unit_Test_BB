@@ -34,5 +34,22 @@ private class QuoteTriggerDependenciesTest {
     IQuoteToOrderService actualService = QuoteTriggerDependencies.getNewService();
 
     Assert.areEqual(expectedService, actualService);
+
+    QuoteTriggerDependencies.newServiceOverride = null;
+    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
+      1
+    );
+
+    QuoteToOrderResult result = QuoteTriggerDependencies.getNewService()
+      .convertQuotes(new Set<Id>{ graph.quoteRecord.Id })
+      .get(graph.quoteRecord.Id);
+
+    Assert.isNotNull(result.orderId);
+    Assert.areEqual(1, result.orderItemCount);
+    Assert.areEqual(
+      result.orderId,
+      [SELECT Converted_Order__c FROM Quote WHERE Id = :graph.quoteRecord.Id]
+      .Converted_Order__c
+    );
   }
 }

@@ -21,7 +21,11 @@ public inherited sharing class QuoteTriggerDependencies {
 
   public static IQuoteToOrderService getNewService() {
     return newServiceOverride == null
-      ? QuoteToOrderServiceFactory.createDefault()
+      ? new QuoteToOrderService(
+          new QuoteToOrderDAO(),
+          new SystemDateProvider(),
+          new QuoteConversionPolicy()
+        )
       : newServiceOverride;
   }
 }
