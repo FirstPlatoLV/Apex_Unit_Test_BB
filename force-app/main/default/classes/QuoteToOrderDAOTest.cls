@@ -14,6 +14,15 @@ private class QuoteToOrderDAOTest {
   );
 
   @IsTest
+  static void constructorTest() {
+    Mock dmlMock = Mock.forType(IDMLExecutor.class);
+    IDMLExecutor dml = (IDMLExecutor) dmlMock.stub;
+
+    Assert.isNotNull(new QuoteToOrderDAO());
+    Assert.isNotNull(new QuoteToOrderDAO(dml));
+  }
+
+  @IsTest
   static void saveOrdersTest() {
     Mock dmlMock = Mock.forType(IDMLExecutor.class);
     IDMLExecutor dml = (IDMLExecutor) dmlMock.stub;

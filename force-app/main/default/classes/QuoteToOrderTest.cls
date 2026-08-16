@@ -1,5 +1,5 @@
 @IsTest
-private class QuoteToOrderFacadeTest {
+private class QuoteToOrderTest {
   @IsTest
   static void convertTest() {
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(

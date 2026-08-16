@@ -1,7 +1,7 @@
 @IsTest
 private class QuoteToOrderResultTest {
   @IsTest
-  static void quoteToOrderResultTest() {
+  static void constructorTest() {
     Id orderId = TestUtility.getFakeId(Order.SObjectType);
     QuoteToOrderResult result = new QuoteToOrderResult(orderId, 2);
     Assert.areEqual(orderId, result.orderId);

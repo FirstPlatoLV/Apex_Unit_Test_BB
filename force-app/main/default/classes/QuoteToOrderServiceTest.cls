@@ -36,6 +36,13 @@ private class QuoteToOrderServiceTest {
   }
 
   @IsTest
+  static void constructorTest() {
+    Fixture f = new Fixture();
+
+    Assert.isNotNull(new QuoteToOrderService(f.dao, f.dates, f.policy));
+  }
+
+  @IsTest
   static void convertTest() {
     Fixture f = configured(
       quoteWith('Accepted', null, ACCOUNT_ID, PRICEBOOK_ID),

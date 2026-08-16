@@ -41,7 +41,7 @@ Apex Stub API mocks cannot cross a managed-package namespace boundary. This veri
 Bash equivalents with the same filenames are also provided. Manual commands:
 
 ```text
-sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests LegacyQuoteConversionPolicyTest --tests QuoteConversionPolicyTest --tests QuoteTriggerTest --tests QuoteToOrderServiceFactoryTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests TestUtilityTest --tests QuoteToOrderFacadeTest --wait 30
+sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests LegacyQuoteConversionPolicyTest --tests QuoteConversionPolicyTest --tests QuoteTriggerTest --tests QuoteToOrderServiceFactoryTest --tests QuoteToOrderExceptionTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests TestUtilityTest --tests QuoteToOrderTest --wait 30
 sf org assign permset --name Quote_Conversion --target-org unittestorg
 sf apex run test --target-org unittestorg --tests LegacyQuoteToOrderServiceTest --synchronous --result-format json
 sf apex run test --target-org unittestorg --tests QuoteToOrderServiceTest --synchronous --result-format json
@@ -57,7 +57,7 @@ Refactored-path tests use a method-oriented convention: each production method, 
 - `QuoteToOrderDAO` / `QuoteToOrderDAOTest`: combined, bulk persistence behavior with mapping tested independently through a mocked `IDMLExecutor`.
 - `DMLExecutor`: a reusable, object-agnostic wrapper around bulk insert, upsert, update, delete, and undelete `Database` calls, including `allOrNone`, external-ID, and access-level parameters.
 - `QuoteToOrderServiceFactory`: production composition root.
-- `QuoteToOrder` / `QuoteToOrderFacadeTest`: static compatibility API and integration path.
+- `QuoteToOrder` / `QuoteToOrderTest`: static compatibility API and integration path.
 - `LegacyQuoteConversionPolicy`: static access to the `Default` Custom Metadata configuration, used directly by the legacy service.
 - `QuoteConversionPolicy`: injectable adapter that delegates to `LegacyQuoteConversionPolicy` through `IQuoteConversionPolicy`.
 - `QuoteTrigger` / `QuoteTriggerTest`: bulk automation that converts Quotes only when their status transitions into the configured accepted status.
