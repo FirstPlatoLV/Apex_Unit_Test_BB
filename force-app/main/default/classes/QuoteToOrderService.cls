@@ -1,16 +1,16 @@
 public inherited sharing class QuoteToOrderService {
   private final IQuoteToOrderDAO dao;
   private final IDateProvider dateProvider;
-  private final String acceptedQuoteStatus;
+  private final IQuoteToOrderPolicy policy;
 
   public QuoteToOrderService(
     IQuoteToOrderDAO dao,
     IDateProvider dateProvider,
-    String acceptedQuoteStatus
+    IQuoteToOrderPolicy policy
   ) {
     this.dao = dao;
     this.dateProvider = dateProvider;
-    this.acceptedQuoteStatus = acceptedQuoteStatus;
+    this.policy = policy;
   }
 
   public QuoteToOrderResult convert(Id quoteId) {
@@ -33,12 +33,13 @@ public inherited sharing class QuoteToOrderService {
       linesByQuoteId.get(line.QuoteId).add(line);
     }
     Date effectiveDate = dateProvider.today();
+    String acceptedQuoteStatus = policy.acceptedQuoteStatus();
     Map<Id, Order> ordersByQuoteId = new Map<Id, Order>();
     Map<Id, List<OrderItem>> itemsByQuoteId = new Map<Id, List<OrderItem>>();
     for (Id quoteId : quoteIds) {
       Quote quoteRecord = quotesById.get(quoteId);
       List<QuoteLineItem> lines = linesByQuoteId.get(quoteId);
-      validate(quoteRecord, lines);
+      validate(quoteRecord, lines, acceptedQuoteStatus);
       ordersByQuoteId.put(
         quoteId,
         new Order(
@@ -78,7 +79,11 @@ public inherited sharing class QuoteToOrderService {
     return results;
   }
 
-  private void validate(Quote quoteRecord, List<QuoteLineItem> lines) {
+  private void validate(
+    Quote quoteRecord,
+    List<QuoteLineItem> lines,
+    String acceptedQuoteStatus
+  ) {
     if (quoteRecord.Status != acceptedQuoteStatus) {
       throw new QuoteToOrderException('Quote status is not accepted');
     }

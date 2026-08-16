@@ -11,6 +11,7 @@ private class DMLExecutorTest {
         .isSuccess()
     );
   }
+
   @IsTest
   static void updateRecordsTest() {
     Account first = new Account(Name = 'one'),
@@ -29,6 +30,7 @@ private class DMLExecutorTest {
         .isSuccess()
     );
   }
+
   @IsTest
   static void upsertRecordsTest() {
     Account first = new Account(Name = 'one'),
@@ -48,6 +50,7 @@ private class DMLExecutorTest {
         .isSuccess()
     );
   }
+
   @IsTest
   static void deleteRecordsTest() {
     Account first = new Account(Name = 'one'),
@@ -64,6 +67,7 @@ private class DMLExecutorTest {
         .isSuccess()
     );
   }
+
   @IsTest
   static void undeleteRecordsTest() {
     Account first = new Account(Name = 'one'),
@@ -81,6 +85,7 @@ private class DMLExecutorTest {
         .isSuccess()
     );
   }
+
   private static List<SObject> records(SObject record) {
     return new List<SObject>{ record };
   }

@@ -3,7 +3,7 @@ public inherited sharing class QuoteToOrderServiceFactory {
     return new QuoteToOrderService(
       new QuoteToOrderDAO(),
       new SystemDateProvider(),
-      BrownbagDemoPolicy.acceptedQuoteStatus()
+      new BrownbagDemoPolicy()
     );
   }
 }

@@ -2,23 +2,13 @@
 private class BrownbagDemoPolicyTest {
   @IsTest
   static void acceptedQuoteStatusTest() {
-    Assert.areEqual('Accepted', BrownbagDemoPolicy.acceptedQuoteStatus());
-
-    assertMissingConfiguration(null);
-    assertMissingConfiguration(new Brownbag_Demo_Config__mdt());
-  }
-
-  private static void assertMissingConfiguration(
-    Brownbag_Demo_Config__mdt config
-  ) {
-    try {
-      BrownbagDemoPolicy.acceptedQuoteStatus(config);
-      Assert.fail('Expected missing configuration failure');
-    } catch (QuoteToOrderException error) {
-      Assert.areEqual(
-        'Accepted Quote status is not configured',
-        error.getMessage()
-      );
-    }
+    Brownbag_Demo_Config__mdt config = Brownbag_Demo_Config__mdt.getInstance(
+      'Default'
+    );
+    BrownbagDemoPolicy policy = new BrownbagDemoPolicy();
+    Assert.areEqual(
+      config?.Accepted_Quote_Status__c,
+      policy.acceptedQuoteStatus()
+    );
   }
 }

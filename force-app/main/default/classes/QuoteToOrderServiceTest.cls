@@ -17,13 +17,21 @@ private class QuoteToOrderServiceTest {
   private static final Date FIXED_DATE = Date.newInstance(2030, 4, 15);
   private class DAOFailureException extends Exception {
   }
+
   private class Fixture {
     Mock daoMock = Mock.forType(IQuoteToOrderDAO.class),
-      dateMock = Mock.forType(IDateProvider.class);
+      dateMock = Mock.forType(IDateProvider.class),
+      policyMock = Mock.forType(IQuoteToOrderPolicy.class);
     IQuoteToOrderDAO dao = (IQuoteToOrderDAO) daoMock.stub;
     IDateProvider dates = (IDateProvider) dateMock.stub;
+    IQuoteToOrderPolicy policy = (IQuoteToOrderPolicy) policyMock.stub;
+
+    Fixture() {
+      policyMock.spyOn('acceptedQuoteStatus').returns('Accepted');
+    }
+
     QuoteToOrderService service() {
-      return new QuoteToOrderService(dao, dates, 'Accepted');
+      return new QuoteToOrderService(dao, dates, policy);
     }
   }
 
@@ -92,6 +100,7 @@ private class QuoteToOrderServiceTest {
     Expect.that(failedSave).hasBeenCalledTimes(1);
     Expect.that(failedMark).hasBeenCalledTimes(0);
   }
+
   @IsTest
   static void validateTest() {
     assertRejected(
@@ -124,6 +133,7 @@ private class QuoteToOrderServiceTest {
       'Quote must contain at least one line'
     );
   }
+
   private static Fixture configured(Quote q, List<QuoteLineItem> lines) {
     Fixture f = new Fixture();
     Map<Id, Quote> quotes = new Map<Id, Quote>();
@@ -138,6 +148,7 @@ private class QuoteToOrderServiceTest {
       .thenReturn(lines);
     return f;
   }
+
   private static void assertRejected(Fixture f, String message) {
     MethodSpy save = f.daoMock.spyOn('saveOrders');
     try {
@@ -148,6 +159,7 @@ private class QuoteToOrderServiceTest {
     }
     Expect.that(save).hasBeenCalledTimes(0);
   }
+
   private static Quote quoteWith(
     String status,
     Id converted,
@@ -167,6 +179,7 @@ private class QuoteToOrderServiceTest {
       Quote.class
     );
   }
+
   private static List<QuoteLineItem> twoLines() {
     List<Object> raw = new List<Object>{
       new Map<String, Object>{

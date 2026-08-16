@@ -4,7 +4,7 @@ This Salesforce DX project contrasts a tightly coupled Quote-to-Order implementa
 
 ## Architecture
 
-`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete static methods on `LegacyQuoteToOrderDAO`. The refactored path mirrors that shape with one injectable `IQuoteToOrderDAO`, implemented by `QuoteToOrderDAO`, plus `IDateProvider`. Both services expose bulk conversion; the new service owns rules and mapping, its DAO owns persistence orchestration, and an injected `IDMLExecutor` isolates the actual `Database` calls. `QuoteToOrderServiceFactory` composes production dependencies, and `QuoteToOrder` preserves a static caller API.
+`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete methods on `LegacyQuoteToOrderDAO` and `BrownbagDemoPolicy`. The refactored path mirrors that shape with injectable `IQuoteToOrderDAO`, `IDateProvider`, and `IQuoteToOrderPolicy` dependencies. `BrownbagDemoPolicy` is a thin adapter around the static Custom Metadata API, allowing service tests to mock the accepted status without requiring metadata records. Both services expose bulk conversion; the new service owns rules and mapping, its DAO owns persistence orchestration, and an injected `IDMLExecutor` isolates the actual `Database` calls. `QuoteToOrderServiceFactory` composes production dependencies, and `QuoteToOrder` preserves a static caller API.
 
 All production classes use `inherited sharing`: callers determine record-sharing behavior, while the permission set grants explicit CRUD/FLS for manual demonstration. This sample is intentionally not a production-grade security framework.
 

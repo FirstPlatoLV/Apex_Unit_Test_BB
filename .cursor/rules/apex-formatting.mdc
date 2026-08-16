@@ -10,6 +10,7 @@ alwaysApply: false
 - Put spaces around assignment and binary operators and after commas.
 - Put spaces inside collection initializer braces, for example `new Set<Id>{ recordId }`.
 - Use one statement per line.
+- Leave at least one blank line between the end of one method body and the next method declaration or annotation.
 - Always wrap the body of `if`, `else`, `for`, `while`, and similar control-flow statements in braces, even when the body contains one statement.
 - Never place the controlled statement on the same line as its condition.
 
