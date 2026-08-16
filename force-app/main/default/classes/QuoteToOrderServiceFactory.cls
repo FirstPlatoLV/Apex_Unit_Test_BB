@@ -1,9 +1,7 @@
 public inherited sharing class QuoteToOrderServiceFactory {
     public static QuoteToOrderService createDefault() {
         return new QuoteToOrderService(
-            new SalesforceQuoteRepository(),
-            new SalesforceQuoteLineRepository(),
-            new SalesforceOrderRepository(),
+            new QuoteToOrderDAO(),
             new SystemDateProvider(),
             BrownbagDemoPolicy.acceptedQuoteStatus()
         );

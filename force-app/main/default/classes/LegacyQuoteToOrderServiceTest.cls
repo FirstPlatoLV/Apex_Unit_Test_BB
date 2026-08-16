@@ -79,4 +79,23 @@ private class LegacyQuoteToOrderServiceTest {
         }
         System.assertEquals(0, [SELECT COUNT() FROM Order WHERE AccountId = :accountRecord.Id]);
     }
+
+    @IsTest
+    static void convertsMultipleQuotesWithBulkQueriesAndDml() {
+        BrownbagTestDataFactory.Graph first = BrownbagTestDataFactory.createAcceptedQuote(2);
+        BrownbagTestDataFactory.Graph second = BrownbagTestDataFactory.createAcceptedQuote(1);
+        Set<Id> quoteIds = new Set<Id>{ first.quoteRecord.Id, second.quoteRecord.Id };
+
+        Test.startTest();
+        Map<Id, Id> orderIdsByQuoteId = LegacyQuoteToOrderService.convert(quoteIds);
+        Test.stopTest();
+
+        System.assertEquals(2, orderIdsByQuoteId.size());
+        Set<Id> orderIds = new Set<Id>(orderIdsByQuoteId.values());
+        System.assertEquals(2, [SELECT COUNT() FROM Order WHERE Id IN :orderIds]);
+        System.assertEquals(3, [SELECT COUNT() FROM OrderItem WHERE OrderId IN :orderIds]);
+        for (Quote convertedQuote : [SELECT Id, Converted_Order__c FROM Quote WHERE Id IN :quoteIds]) {
+            System.assertEquals(orderIdsByQuoteId.get(convertedQuote.Id), convertedQuote.Converted_Order__c);
+        }
+    }
 }

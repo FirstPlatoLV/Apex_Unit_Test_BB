@@ -4,7 +4,7 @@ This Salesforce DX project contrasts a tightly coupled Quote-to-Order implementa
 
 ## Architecture
 
-`LegacyQuoteToOrderService` contains mapping, the system clock, and a static entry point, and calls concrete static query/DML methods on `LegacyQuoteToOrderDataAccess`. This resembles common layered legacy Apex but still offers no substitution seam. The refactored path separates `IQuoteRepository`, `IQuoteLineRepository`, `IOrderRepository`, and `IDateProvider`; `QuoteToOrderService` owns rules/mapping only; Salesforce implementations own persistence; `QuoteToOrderServiceFactory` composes production dependencies; and `QuoteToOrder` preserves a static caller API.
+`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete static methods on `LegacyQuoteToOrderDAO`. The refactored path mirrors that shape with one injectable `IQuoteToOrderDAO`, implemented by `QuoteToOrderDAO`, plus `IDateProvider`. Both services expose bulk conversion; the new service owns rules and mapping while its DAO owns persistence. `QuoteToOrderServiceFactory` composes production dependencies, and `QuoteToOrder` preserves a static caller API.
 
 All production classes use `inherited sharing`: callers determine record-sharing behavior, while the permission set grants explicit CRUD/FLS for manual demonstration. This sample is intentionally not a production-grade security framework.
 
@@ -41,7 +41,7 @@ Apex Stub API mocks cannot cross a managed-package namespace boundary. This veri
 Bash equivalents with the same filenames are also provided. Manual commands:
 
 ```text
-sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests SalesforceRepositoriesTest --tests QuoteToOrderFacadeTest --wait 30
+sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests QuoteToOrderFacadeTest --wait 30
 sf org assign permset --name Brownbag_Testable_Apex --target-org unittestorg
 sf apex run test --target-org unittestorg --tests LegacyQuoteToOrderServiceTest --synchronous --result-format json
 sf apex run test --target-org unittestorg --tests QuoteToOrderServiceTest --synchronous --result-format json
@@ -50,9 +50,9 @@ sf org open --target-org unittestorg
 
 ## Class and test map
 
-- `LegacyQuoteToOrderService` / `LegacyQuoteToOrderDataAccess` / `LegacyQuoteToOrderServiceTest`: static coupling through query/DML wrappers and a complete persisted data graph.
+- `LegacyQuoteToOrderService` / `LegacyQuoteToOrderDAO` / `LegacyQuoteToOrderServiceTest`: bulk-safe static coupling through set-based query/DML wrappers and complete persisted data graphs.
 - `QuoteToOrderService` / `QuoteToOrderServiceTest`: injected business logic and seven Mockery tests with no SOQL/DML.
-- `Salesforce*Repository` / `SalesforceRepositoriesTest`: focused Salesforce persistence behavior.
+- `QuoteToOrderDAO` / `QuoteToOrderDAOTest`: combined, bulk query/DML behavior behind one injectable contract.
 - `QuoteToOrderServiceFactory`: production composition root.
 - `QuoteToOrder` / `QuoteToOrderFacadeTest`: static compatibility API and integration path.
 - `BrownbagDemoPolicy`: reads the `Default` Custom Metadata configuration.
@@ -65,4 +65,4 @@ Follow [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md): legacy service/test, baseline timing,
 
 ## Limitations and cleanup
 
-This excludes CPQ/Revenue Cloud, UI, Flow, multi-currency, tax/discount logic, quote synchronization, and bulk conversion. Tests create transactional records that Salesforce rolls back automatically. No persistent demo business records are created, so no record cleanup is required. Removing deployed metadata is intentionally not scripted; use a reviewed metadata-deletion process if needed. Apex Mockery is never modified by this project.
+This excludes CPQ/Revenue Cloud, UI, Flow, multi-currency, tax/discount logic, and quote synchronization. Tests create transactional records that Salesforce rolls back automatically. No persistent demo business records are created, so no record cleanup is required. Removing deployed metadata is intentionally not scripted; use a reviewed metadata-deletion process if needed. Apex Mockery is never modified by this project.

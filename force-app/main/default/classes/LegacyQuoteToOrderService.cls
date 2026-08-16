@@ -1,10 +1,61 @@
 public inherited sharing class LegacyQuoteToOrderService {
     public static Id convert(Id quoteId) {
-        Quote quoteRecord = LegacyQuoteToOrderDataAccess.findQuote(quoteId);
-        if (quoteRecord == null) {
+        return convert(new Set<Id>{ quoteId }).get(quoteId);
+    }
+
+    public static Map<Id, Id> convert(Set<Id> quoteIds) {
+        if (quoteIds == null || quoteIds.isEmpty()) {
+            return new Map<Id, Id>();
+        }
+        Map<Id, Quote> quotesById = LegacyQuoteToOrderDAO.findQuotes(quoteIds);
+        if (quotesById.size() != quoteIds.size()) {
             throw new QuoteToOrderException('Quote does not exist');
         }
-        if (quoteRecord.Status != BrownbagDemoPolicy.acceptedQuoteStatus()) {
+        Map<Id, List<QuoteLineItem>> linesByQuoteId = new Map<Id, List<QuoteLineItem>>();
+        for (QuoteLineItem quoteLine : LegacyQuoteToOrderDAO.findQuoteLines(quoteIds)) {
+            if (!linesByQuoteId.containsKey(quoteLine.QuoteId)) {
+                linesByQuoteId.put(quoteLine.QuoteId, new List<QuoteLineItem>());
+            }
+            linesByQuoteId.get(quoteLine.QuoteId).add(quoteLine);
+        }
+
+        String acceptedStatus = BrownbagDemoPolicy.acceptedQuoteStatus();
+        List<Id> orderedQuoteIds = new List<Id>(quoteIds);
+        orderedQuoteIds.sort();
+        List<Order> orders = new List<Order>();
+        for (Id currentQuoteId : orderedQuoteIds) {
+            Quote quoteRecord = quotesById.get(currentQuoteId);
+            validate(quoteRecord, linesByQuoteId.get(currentQuoteId), acceptedStatus);
+            orders.add(new Order(
+                AccountId = quoteRecord.AccountId,
+                EffectiveDate = Date.today(),
+                Pricebook2Id = quoteRecord.Pricebook2Id,
+                Status = 'Draft'
+            ));
+        }
+        LegacyQuoteToOrderDAO.insertOrders(orders);
+
+        List<OrderItem> orderItems = new List<OrderItem>();
+        Map<Id, Id> orderIdsByQuoteId = new Map<Id, Id>();
+        for (Integer index = 0; index < orderedQuoteIds.size(); index++) {
+            Id currentQuoteId = orderedQuoteIds[index];
+            orderIdsByQuoteId.put(currentQuoteId, orders[index].Id);
+            for (QuoteLineItem quoteLine : linesByQuoteId.get(currentQuoteId)) {
+                orderItems.add(new OrderItem(
+                    OrderId = orders[index].Id,
+                    PricebookEntryId = quoteLine.PricebookEntryId,
+                    Quantity = quoteLine.Quantity,
+                    UnitPrice = quoteLine.UnitPrice
+                ));
+            }
+        }
+        LegacyQuoteToOrderDAO.insertOrderItems(orderItems);
+        LegacyQuoteToOrderDAO.markQuotesConverted(orderIdsByQuoteId);
+        return orderIdsByQuoteId;
+    }
+
+    private static void validate(Quote quoteRecord, List<QuoteLineItem> quoteLines, String acceptedStatus) {
+        if (quoteRecord.Status != acceptedStatus) {
             throw new QuoteToOrderException('Quote status is not accepted');
         }
         if (quoteRecord.Converted_Order__c != null) {
@@ -16,32 +67,8 @@ public inherited sharing class LegacyQuoteToOrderService {
         if (quoteRecord.Pricebook2Id == null) {
             throw new QuoteToOrderException('Quote Price Book is required');
         }
-
-        List<QuoteLineItem> quoteLines = LegacyQuoteToOrderDataAccess.findQuoteLines(quoteId);
-        if (quoteLines.isEmpty()) {
+        if (quoteLines == null || quoteLines.isEmpty()) {
             throw new QuoteToOrderException('Quote must contain at least one line');
         }
-
-        Order orderRecord = new Order(
-            AccountId = quoteRecord.AccountId,
-            EffectiveDate = Date.today(),
-            Pricebook2Id = quoteRecord.Pricebook2Id,
-            Status = 'Draft'
-        );
-        LegacyQuoteToOrderDataAccess.insertOrder(orderRecord);
-
-        List<OrderItem> orderItems = new List<OrderItem>();
-        for (QuoteLineItem quoteLine : quoteLines) {
-            orderItems.add(new OrderItem(
-                OrderId = orderRecord.Id,
-                PricebookEntryId = quoteLine.PricebookEntryId,
-                Quantity = quoteLine.Quantity,
-                UnitPrice = quoteLine.UnitPrice
-            ));
-        }
-        LegacyQuoteToOrderDataAccess.insertOrderItems(orderItems);
-
-        LegacyQuoteToOrderDataAccess.markQuoteConverted(quoteRecord.Id, orderRecord.Id);
-        return orderRecord.Id;
     }
 }
