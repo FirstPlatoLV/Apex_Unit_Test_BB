@@ -1,16 +1,9 @@
 public inherited sharing class LegacyQuoteToOrderService {
     public static Id convert(Id quoteId) {
-        List<Quote> quotes = [
-            SELECT Id, Status, Converted_Order__c, AccountId, Pricebook2Id
-            FROM Quote
-            WHERE Id = :quoteId
-            LIMIT 1
-        ];
-        if (quotes.isEmpty()) {
+        Quote quoteRecord = LegacyQuoteToOrderDataAccess.findQuote(quoteId);
+        if (quoteRecord == null) {
             throw new QuoteToOrderException('Quote does not exist');
         }
-
-        Quote quoteRecord = quotes[0];
         if (quoteRecord.Status != BrownbagDemoPolicy.acceptedQuoteStatus()) {
             throw new QuoteToOrderException('Quote status is not accepted');
         }
@@ -24,12 +17,7 @@ public inherited sharing class LegacyQuoteToOrderService {
             throw new QuoteToOrderException('Quote Price Book is required');
         }
 
-        List<QuoteLineItem> quoteLines = [
-            SELECT PricebookEntryId, Quantity, UnitPrice
-            FROM QuoteLineItem
-            WHERE QuoteId = :quoteId
-            ORDER BY Id
-        ];
+        List<QuoteLineItem> quoteLines = LegacyQuoteToOrderDataAccess.findQuoteLines(quoteId);
         if (quoteLines.isEmpty()) {
             throw new QuoteToOrderException('Quote must contain at least one line');
         }
@@ -40,7 +28,7 @@ public inherited sharing class LegacyQuoteToOrderService {
             Pricebook2Id = quoteRecord.Pricebook2Id,
             Status = 'Draft'
         );
-        insert orderRecord;
+        LegacyQuoteToOrderDataAccess.insertOrder(orderRecord);
 
         List<OrderItem> orderItems = new List<OrderItem>();
         for (QuoteLineItem quoteLine : quoteLines) {
@@ -51,9 +39,9 @@ public inherited sharing class LegacyQuoteToOrderService {
                 UnitPrice = quoteLine.UnitPrice
             ));
         }
-        insert orderItems;
+        LegacyQuoteToOrderDataAccess.insertOrderItems(orderItems);
 
-        update new Quote(Id = quoteRecord.Id, Converted_Order__c = orderRecord.Id);
+        LegacyQuoteToOrderDataAccess.markQuoteConverted(quoteRecord.Id, orderRecord.Id);
         return orderRecord.Id;
     }
 }

@@ -4,7 +4,7 @@ This Salesforce DX project contrasts a tightly coupled Quote-to-Order implementa
 
 ## Architecture
 
-`LegacyQuoteToOrderService` contains SOQL, mapping, DML, the system clock, and a static entry point. The refactored path separates `IQuoteRepository`, `IQuoteLineRepository`, `IOrderRepository`, and `IDateProvider`; `QuoteToOrderService` owns rules/mapping only; Salesforce implementations own persistence; `QuoteToOrderServiceFactory` composes production dependencies; and `QuoteToOrder` preserves a static caller API.
+`LegacyQuoteToOrderService` contains mapping, the system clock, and a static entry point, and calls concrete static query/DML methods on `LegacyQuoteToOrderDataAccess`. This resembles common layered legacy Apex but still offers no substitution seam. The refactored path separates `IQuoteRepository`, `IQuoteLineRepository`, `IOrderRepository`, and `IDateProvider`; `QuoteToOrderService` owns rules/mapping only; Salesforce implementations own persistence; `QuoteToOrderServiceFactory` composes production dependencies; and `QuoteToOrder` preserves a static caller API.
 
 All production classes use `inherited sharing`: callers determine record-sharing behavior, while the permission set grants explicit CRUD/FLS for manual demonstration. This sample is intentionally not a production-grade security framework.
 
@@ -50,7 +50,7 @@ sf org open --target-org unittestorg
 
 ## Class and test map
 
-- `LegacyQuoteToOrderService` / `LegacyQuoteToOrderServiceTest`: coupled code and complete persisted data graph.
+- `LegacyQuoteToOrderService` / `LegacyQuoteToOrderDataAccess` / `LegacyQuoteToOrderServiceTest`: static coupling through query/DML wrappers and a complete persisted data graph.
 - `QuoteToOrderService` / `QuoteToOrderServiceTest`: injected business logic and seven Mockery tests with no SOQL/DML.
 - `Salesforce*Repository` / `SalesforceRepositoriesTest`: focused Salesforce persistence behavior.
 - `QuoteToOrderServiceFactory`: production composition root.

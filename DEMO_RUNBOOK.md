@@ -1,7 +1,7 @@
 # Brown-bag demonstration runbook
 
 1. Run `scripts/preflight.ps1 unittestorg`; point out standard objects, `Accepted`, and Apex Mockery 2.3.0.1.
-2. Show `LegacyQuoteToOrderService.cls`: inline SOQL/DML, system clock, mapping, static API.
+2. Show `LegacyQuoteToOrderService.cls` and `LegacyQuoteToOrderDataAccess.cls`: static query/DML wrappers look layered, but the concrete calls, system clock, and static API remain non-substitutable.
 3. Show the complete data graph in `LegacyQuoteToOrderServiceTest.cls`, then run it.
 4. Show the four interfaces, injected `QuoteToOrderService`, production factory, and static façade.
 5. Show the mock happy path: controlled in-memory records, exact mappings, result and interaction assertions.

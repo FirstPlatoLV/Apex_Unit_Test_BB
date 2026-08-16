@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <classAccesses><apexClass>LegacyQuoteToOrderService</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>LegacyQuoteToOrderDataAccess</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>QuoteToOrder</apexClass><enabled>true</enabled></classAccesses>
     <classAccesses><apexClass>QuoteToOrderService</apexClass><enabled>true</enabled></classAccesses>
     <description>Minimum access for the testable Apex brown-bag demonstration.</description>
