@@ -1,0 +1,55 @@
+{
+  "result": {
+    "summary": {
+      "failRate": "0%",
+      "failing": 0,
+      "hostname": "https://playful-wolf-8c6069-dev-ed.trailblaze.my.salesforce.com",
+      "orgId": "00DWU00000rCpMn2AK",
+      "outcome": "Passed",
+      "passRate": "100%",
+      "passing": 2,
+      "skipped": 0,
+      "testRunId": "",
+      "testStartTime": "2026-08-16T17:17:05.163Z",
+      "testsRan": 2,
+      "username": "maris.melbardis@playful-wolf-8c6069.com",
+      "commandTime": "0 ms",
+      "testExecutionTime": "1899 ms",
+      "testTotalTime": "1899 ms"
+    },
+    "tests": [
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "nonEligibleStatusTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzvY5YAJ",
+          "Name": "QuoteTriggerTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 702,
+        "FullName": "QuoteTriggerTest.nonEligibleStatusTest"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "quoteTriggerTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzvY5YAJ",
+          "Name": "QuoteTriggerTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 1183,
+        "FullName": "QuoteTriggerTest.quoteTriggerTest"
+      }
+    ]
+  }
+}

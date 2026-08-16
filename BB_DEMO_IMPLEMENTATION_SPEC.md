@@ -334,7 +334,7 @@ Recommended API:
 public static IQuoteToOrderService getNewService()
 ```
 
-This method constructs the real DAO, date provider, and policy, then injects them into the service. The same class provides the narrow dependency overrides required to test trigger-level implementation selection.
+This method constructs the real DAO, date provider, and policy, then injects them into the service. Trigger integration tests use this real composition and the org's actual Custom Metadata configuration.
 
 The service must not call this factory internally.
 

@@ -1,0 +1,103 @@
+{
+  "result": {
+    "summary": {
+      "failRate": "0%",
+      "failing": 0,
+      "hostname": "https://playful-wolf-8c6069-dev-ed.trailblaze.my.salesforce.com",
+      "orgId": "00DWU00000rCpMn2AK",
+      "outcome": "Passed",
+      "passRate": "100%",
+      "passing": 5,
+      "skipped": 0,
+      "testRunId": "",
+      "testStartTime": "2026-08-16T17:10:30.071Z",
+      "testsRan": 5,
+      "username": "maris.melbardis@playful-wolf-8c6069.com",
+      "commandTime": "0 ms",
+      "testExecutionTime": "1307 ms",
+      "testTotalTime": "1307 ms"
+    },
+    "tests": [
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "deleteRecordsTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000Rzo5BYAR",
+          "Name": "DMLExecutorTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 761,
+        "FullName": "DMLExecutorTest.deleteRecordsTest"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "insertRecordsTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000Rzo5BYAR",
+          "Name": "DMLExecutorTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 65,
+        "FullName": "DMLExecutorTest.insertRecordsTest"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "undeleteRecordsTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000Rzo5BYAR",
+          "Name": "DMLExecutorTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 284,
+        "FullName": "DMLExecutorTest.undeleteRecordsTest"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "updateRecordsTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000Rzo5BYAR",
+          "Name": "DMLExecutorTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 88,
+        "FullName": "DMLExecutorTest.updateRecordsTest"
+      },
+      {
+        "Id": "",
+        "QueueItemId": "",
+        "StackTrace": "",
+        "Message": "",
+        "AsyncApexJobId": "",
+        "MethodName": "upsertRecordsTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000Rzo5BYAR",
+          "Name": "DMLExecutorTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 98,
+        "FullName": "DMLExecutorTest.upsertRecordsTest"
+      }
+    ]
+  }
+}

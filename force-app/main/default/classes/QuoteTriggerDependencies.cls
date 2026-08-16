@@ -1,31 +1,17 @@
 public inherited sharing class QuoteTriggerDependencies {
-  @TestVisible
-  private static IQuoteConversionPolicy policyOverride;
-  @TestVisible
-  private static IQuoteToOrderService legacyServiceOverride;
-  @TestVisible
-  private static IQuoteToOrderService newServiceOverride;
-
   public static Quote_Conversion_Policy__mdt getPolicy() {
-    IQuoteConversionPolicy policy = policyOverride == null
-      ? new QuoteConversionPolicy()
-      : policyOverride;
-    return policy.getPolicy();
+    return new QuoteConversionPolicy().getPolicy();
   }
 
   public static IQuoteToOrderService getLegacyService() {
-    return legacyServiceOverride == null
-      ? new LegacyQuoteToOrderService()
-      : legacyServiceOverride;
+    return new LegacyQuoteToOrderService();
   }
 
   public static IQuoteToOrderService getNewService() {
-    return newServiceOverride == null
-      ? new QuoteToOrderService(
-          new QuoteToOrderDAO(),
-          new SystemDateProvider(),
-          new QuoteConversionPolicy()
-        )
-      : newServiceOverride;
+    return new QuoteToOrderService(
+      new QuoteToOrderDAO(),
+      new SystemDateProvider(),
+      new QuoteConversionPolicy()
+    );
   }
 }

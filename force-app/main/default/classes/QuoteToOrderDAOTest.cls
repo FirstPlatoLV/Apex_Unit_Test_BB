@@ -52,29 +52,32 @@ private class QuoteToOrderDAOTest {
 
   @IsTest
   static void findQuotesTest() {
-    QuoteToOrderTestDataFactory.Graph first = QuoteToOrderTestDataFactory.createAcceptedQuote(
-        2
-      ),
-      second = QuoteToOrderTestDataFactory.createAcceptedQuote(1);
-    Set<Id> quoteIds = new Set<Id>{
-      first.quoteRecord.Id,
-      second.quoteRecord.Id
-    };
     QuoteToOrderDAO dao = new QuoteToOrderDAO();
-    Assert.areEqual(2, dao.findQuotes(quoteIds).size());
+
+    Test.startTest();
+    Integer queriesBefore = Limits.getQueries();
+    Map<Id, Quote> quotesById = dao.findQuotes(new Set<Id>{ QUOTE_ONE_ID });
+    Integer queriesAfter = Limits.getQueries();
+    Test.stopTest();
+
+    Assert.areEqual(queriesBefore + 1, queriesAfter);
+    Assert.isTrue(quotesById.isEmpty());
   }
 
   @IsTest
   static void findQuoteLinesTest() {
-    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
-      2
+    QuoteToOrderDAO dao = new QuoteToOrderDAO();
+
+    Test.startTest();
+    Integer queriesBefore = Limits.getQueries();
+    List<QuoteLineItem> quoteLines = dao.findQuoteLines(
+      new Set<Id>{ QUOTE_ONE_ID }
     );
-    Assert.areEqual(
-      2,
-      new QuoteToOrderDAO()
-        .findQuoteLines(new Set<Id>{ graph.quoteRecord.Id })
-        .size()
-    );
+    Integer queriesAfter = Limits.getQueries();
+    Test.stopTest();
+
+    Assert.areEqual(queriesBefore + 1, queriesAfter);
+    Assert.isTrue(quoteLines.isEmpty());
   }
 
   @IsTest
