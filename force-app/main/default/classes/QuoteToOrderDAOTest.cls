@@ -19,22 +19,22 @@ private class QuoteToOrderDAOTest {
         QuoteToOrderDAO dao=new QuoteToOrderDAO(dml);
         Map<Id,Id> result=dao.saveOrders(orders,items);
 
-        System.assertEquals(ORDER_ONE_ID,result.get(QUOTE_ONE_ID));
-        System.assertEquals(ORDER_TWO_ID,result.get(QUOTE_TWO_ID));
-        System.assertEquals(ORDER_ONE_ID,firstItem.OrderId);
-        System.assertEquals(ORDER_TWO_ID,secondItem.OrderId);
+        Assert.areEqual(ORDER_ONE_ID,result.get(QUOTE_ONE_ID));
+        Assert.areEqual(ORDER_TWO_ID,result.get(QUOTE_TWO_ID));
+        Assert.areEqual(ORDER_ONE_ID,firstItem.OrderId);
+        Assert.areEqual(ORDER_TWO_ID,secondItem.OrderId);
         Expect.that(insertRecords).hasBeenCalledTimes(2);
     }
 
     @IsTest static void findQuotesTest(){
         BrownbagTestDataFactory.Graph first=BrownbagTestDataFactory.createAcceptedQuote(2), second=BrownbagTestDataFactory.createAcceptedQuote(1);
         Set<Id> quoteIds=new Set<Id>{first.quoteRecord.Id,second.quoteRecord.Id}; QuoteToOrderDAO dao=new QuoteToOrderDAO();
-        System.assertEquals(2,dao.findQuotes(quoteIds).size());
+        Assert.areEqual(2,dao.findQuotes(quoteIds).size());
     }
 
     @IsTest static void findQuoteLinesTest(){
         BrownbagTestDataFactory.Graph graph=BrownbagTestDataFactory.createAcceptedQuote(2);
-        System.assertEquals(2,new QuoteToOrderDAO().findQuoteLines(new Set<Id>{graph.quoteRecord.Id}).size());
+        Assert.areEqual(2,new QuoteToOrderDAO().findQuoteLines(new Set<Id>{graph.quoteRecord.Id}).size());
     }
 
     @IsTest static void markQuotesConvertedTest(){

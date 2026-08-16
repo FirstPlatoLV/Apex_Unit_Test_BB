@@ -23,18 +23,18 @@ private class QuoteToOrderServiceTest {
         save.whenCalledWith(Argument.any(),Argument.any()).thenReturn(new Map<Id,Id>{QUOTE_ID=>ORDER_ID});
         MethodSpy mark=f.daoMock.spyOn('markQuotesConverted');
         QuoteToOrderResult result=f.service().convert(QUOTE_ID);
-        System.assertEquals(ORDER_ID,result.orderId); System.assertEquals(2,result.orderItemCount);
+        Assert.areEqual(ORDER_ID,result.orderId); Assert.areEqual(2,result.orderItemCount);
         Expect.that(save).hasBeenCalledTimes(1);
         Expect.that(mark).hasBeenCalledWith(Argument.jsonEquals(new Map<Id,Id>{QUOTE_ID=>ORDER_ID}));
 
-        System.assertEquals(0,f.service().convert(new Set<Id>()).size());
-        System.assertEquals(0,f.service().convert((Set<Id>)null).size());
+        Assert.areEqual(0,f.service().convert(new Set<Id>()).size());
+        Assert.areEqual(0,f.service().convert((Set<Id>)null).size());
         assertRejected(configured(null,twoLines()),'Quote does not exist');
 
         Fixture failed=configured(quoteWith('Accepted',null,ACCOUNT_ID,PRICEBOOK_ID),twoLines()); failed.dateMock.spyOn('today').returns(FIXED_DATE);
         MethodSpy failedSave=failed.daoMock.spyOn('saveOrders'); failedSave.throwsException(new DAOFailureException('Order persistence failed'));
         MethodSpy failedMark=failed.daoMock.spyOn('markQuotesConverted');
-        try { failed.service().convert(QUOTE_ID); System.assert(false,'Expected DAO failure'); } catch(DAOFailureException e){ System.assertEquals('Order persistence failed',e.getMessage()); }
+        try { failed.service().convert(QUOTE_ID); Assert.fail('Expected DAO failure'); } catch(DAOFailureException e){ Assert.areEqual('Order persistence failed',e.getMessage()); }
         Expect.that(failedSave).hasBeenCalledTimes(1); Expect.that(failedMark).hasBeenCalledTimes(0);
     }
     @IsTest static void validateTest(){
@@ -49,7 +49,7 @@ private class QuoteToOrderServiceTest {
         f.daoMock.spyOn('findQuotes').whenCalledWith(new Set<Id>{QUOTE_ID}).thenReturn(quotes);
         f.daoMock.spyOn('findQuoteLines').whenCalledWith(new Set<Id>{QUOTE_ID}).thenReturn(lines); return f;
     }
-    private static void assertRejected(Fixture f,String message){ MethodSpy save=f.daoMock.spyOn('saveOrders'); try{f.service().convert(QUOTE_ID);System.assert(false,'Expected rejection');}catch(QuoteToOrderException e){System.assertEquals(message,e.getMessage());} Expect.that(save).hasBeenCalledTimes(0); }
+    private static void assertRejected(Fixture f,String message){ MethodSpy save=f.daoMock.spyOn('saveOrders'); try{f.service().convert(QUOTE_ID);Assert.fail('Expected rejection');}catch(QuoteToOrderException e){Assert.areEqual(message,e.getMessage());} Expect.that(save).hasBeenCalledTimes(0); }
     private static Quote quoteWith(String status,Id converted,Id accountId,Id pricebookId){ return (Quote)JSON.deserialize(JSON.serialize(new Map<String,Object>{'Id'=>QUOTE_ID,'Status'=>status,'Converted_Order__c'=>converted,'AccountId'=>accountId,'Pricebook2Id'=>pricebookId}),Quote.class); }
     private static List<QuoteLineItem> twoLines(){
         List<Object> raw=new List<Object>{new Map<String,Object>{'QuoteId'=>QUOTE_ID,'PricebookEntryId'=>ENTRY_ONE_ID,'Quantity'=>2,'UnitPrice'=>9},new Map<String,Object>{'QuoteId'=>QUOTE_ID,'PricebookEntryId'=>ENTRY_TWO_ID,'Quantity'=>3,'UnitPrice'=>24}};

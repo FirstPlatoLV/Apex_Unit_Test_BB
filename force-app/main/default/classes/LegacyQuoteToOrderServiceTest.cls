@@ -45,18 +45,18 @@ private class LegacyQuoteToOrderServiceTest {
         Order savedOrder = [SELECT AccountId, EffectiveDate, Pricebook2Id, Status FROM Order WHERE Id = :orderId];
         List<OrderItem> savedItems = [SELECT PricebookEntryId, Quantity, UnitPrice FROM OrderItem WHERE OrderId = :orderId ORDER BY UnitPrice];
         Quote savedQuote = [SELECT Converted_Order__c FROM Quote WHERE Id = :quoteRecord.Id];
-        System.assertEquals(accountRecord.Id, savedOrder.AccountId);
-        System.assertEquals(Date.today(), savedOrder.EffectiveDate);
-        System.assertEquals(Test.getStandardPricebookId(), savedOrder.Pricebook2Id);
-        System.assertEquals('Draft', savedOrder.Status);
-        System.assertEquals(2, savedItems.size());
-        System.assertEquals(entries[0].Id, savedItems[0].PricebookEntryId);
-        System.assertEquals(Decimal.valueOf(2), savedItems[0].Quantity);
-        System.assertEquals(Decimal.valueOf(9), savedItems[0].UnitPrice);
-        System.assertEquals(entries[1].Id, savedItems[1].PricebookEntryId);
-        System.assertEquals(Decimal.valueOf(3), savedItems[1].Quantity);
-        System.assertEquals(Decimal.valueOf(24), savedItems[1].UnitPrice);
-        System.assertEquals(orderId, savedQuote.Converted_Order__c);
+        Assert.areEqual(accountRecord.Id, savedOrder.AccountId);
+        Assert.areEqual(Date.today(), savedOrder.EffectiveDate);
+        Assert.areEqual(Test.getStandardPricebookId(), savedOrder.Pricebook2Id);
+        Assert.areEqual('Draft', savedOrder.Status);
+        Assert.areEqual(2, savedItems.size());
+        Assert.areEqual(entries[0].Id, savedItems[0].PricebookEntryId);
+        Assert.areEqual(Decimal.valueOf(2), savedItems[0].Quantity);
+        Assert.areEqual(Decimal.valueOf(9), savedItems[0].UnitPrice);
+        Assert.areEqual(entries[1].Id, savedItems[1].PricebookEntryId);
+        Assert.areEqual(Decimal.valueOf(3), savedItems[1].Quantity);
+        Assert.areEqual(Decimal.valueOf(24), savedItems[1].UnitPrice);
+        Assert.areEqual(orderId, savedQuote.Converted_Order__c);
     }
 
     @IsTest
@@ -73,11 +73,11 @@ private class LegacyQuoteToOrderServiceTest {
 
         try {
             LegacyQuoteToOrderService.convert(quoteRecord.Id);
-            System.assert(false, 'Expected rejection');
+            Assert.fail('Expected rejection');
         } catch (QuoteToOrderException error) {
-            System.assertEquals('Quote status is not accepted', error.getMessage());
+            Assert.areEqual('Quote status is not accepted', error.getMessage());
         }
-        System.assertEquals(0, [SELECT COUNT() FROM Order WHERE AccountId = :accountRecord.Id]);
+        Assert.areEqual(0, [SELECT COUNT() FROM Order WHERE AccountId = :accountRecord.Id]);
     }
 
     @IsTest
@@ -90,12 +90,12 @@ private class LegacyQuoteToOrderServiceTest {
         Map<Id, Id> orderIdsByQuoteId = LegacyQuoteToOrderService.convert(quoteIds);
         Test.stopTest();
 
-        System.assertEquals(2, orderIdsByQuoteId.size());
+        Assert.areEqual(2, orderIdsByQuoteId.size());
         Set<Id> orderIds = new Set<Id>(orderIdsByQuoteId.values());
-        System.assertEquals(2, [SELECT COUNT() FROM Order WHERE Id IN :orderIds]);
-        System.assertEquals(3, [SELECT COUNT() FROM OrderItem WHERE OrderId IN :orderIds]);
+        Assert.areEqual(2, [SELECT COUNT() FROM Order WHERE Id IN :orderIds]);
+        Assert.areEqual(3, [SELECT COUNT() FROM OrderItem WHERE OrderId IN :orderIds]);
         for (Quote convertedQuote : [SELECT Id, Converted_Order__c FROM Quote WHERE Id IN :quoteIds]) {
-            System.assertEquals(orderIdsByQuoteId.get(convertedQuote.Id), convertedQuote.Converted_Order__c);
+            Assert.areEqual(orderIdsByQuoteId.get(convertedQuote.Id), convertedQuote.Converted_Order__c);
         }
     }
 }

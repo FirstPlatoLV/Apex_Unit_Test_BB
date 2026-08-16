@@ -41,7 +41,7 @@ Apex Stub API mocks cannot cross a managed-package namespace boundary. This veri
 Bash equivalents with the same filenames are also provided. Manual commands:
 
 ```text
-sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests BrownbagDemoPolicyTest --tests QuoteToOrderServiceFactoryTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests QuoteToOrderFacadeTest --wait 30
+sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests BrownbagDemoPolicyTest --tests QuoteToOrderServiceFactoryTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests TestUtilityTest --tests QuoteToOrderFacadeTest --wait 30
 sf org assign permset --name Brownbag_Testable_Apex --target-org unittestorg
 sf apex run test --target-org unittestorg --tests LegacyQuoteToOrderServiceTest --synchronous --result-format json
 sf apex run test --target-org unittestorg --tests QuoteToOrderServiceTest --synchronous --result-format json
