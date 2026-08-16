@@ -20,7 +20,7 @@ foreach ($suite in $suites) {
 }
 $resultsDir = Split-Path $rawDir
 $rows | Export-Csv -NoTypeInformation (Join-Path $resultsDir 'summary.csv')
-$lines = @('# Benchmark summary', '', "- Org alias: $TargetOrg", "- Date: $(Get-Date -Format yyyy-MM-dd)", '- API version: 67.0', '- One warm-up plus measured runs; suites synchronous and sequential.', '- Parallel Apex testing: record the org preference manually if available; measured suites do not run in parallel.', '')
+$lines = @('# Benchmark summary', '', "- Org alias: $TargetOrg", "- Date: $(Get-Date -Format yyyy-MM-dd)", '- API version: 65.0', '- One warm-up plus measured runs; suites synchronous and sequential.', '- Parallel Apex testing: record the org preference manually if available; measured suites do not run in parallel.', '')
 foreach ($suiteName in @('legacy','mock')) {
     $values = $rows | Where-Object suite -eq $suiteName
     $sf = @($values.salesforce_ms | Sort-Object); $wall = @($values.wall_ms | Sort-Object); $middle = [math]::Floor($sf.Count / 2)
