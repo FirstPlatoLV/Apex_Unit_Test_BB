@@ -12,25 +12,11 @@ private class QuoteTriggerHandlerTest {
   private static final Id ORDER_ID = TestUtility.getFakeId(Order.SObjectType);
 
   private class Fixture {
-    Mock policyMock = Mock.forType(IQuoteConversionPolicy.class),
-      legacyServiceMock = Mock.forType(IQuoteToOrderService.class),
-      newServiceMock = Mock.forType(IQuoteToOrderService.class);
-    IQuoteConversionPolicy policy = (IQuoteConversionPolicy) policyMock.stub;
-    IQuoteToOrderService legacyService = (IQuoteToOrderService) legacyServiceMock.stub;
-    IQuoteToOrderService newService = (IQuoteToOrderService) newServiceMock.stub;
-
-    Fixture() {
-      policyMock.spyOn('getPolicy')
-        .returns(
-          new Quote_Conversion_Policy__mdt(
-            Accepted_Quote_Status__c = 'Accepted',
-            Use_Legacy_Implementation__c = false
-          )
-        );
-    }
+    Mock serviceMock = Mock.forType(IQuoteToOrderService.class);
+    IQuoteToOrderService service = (IQuoteToOrderService) serviceMock.stub;
 
     QuoteTriggerHandler handler() {
-      return new QuoteTriggerHandler(policy, legacyService, newService);
+      return new QuoteTriggerHandler(service);
     }
   }
 
@@ -38,15 +24,13 @@ private class QuoteTriggerHandlerTest {
   static void constructorTest() {
     Fixture f = new Fixture();
 
-    Assert.isNotNull(
-      new QuoteTriggerHandler(f.policy, f.legacyService, f.newService)
-    );
+    Assert.isNotNull(new QuoteTriggerHandler(f.service));
   }
 
   @IsTest
   static void handleTest() {
     Fixture f = new Fixture();
-    MethodSpy convert = f.newServiceMock.spyOn('convertQuotes');
+    MethodSpy convert = f.serviceMock.spyOn('convertQuotes');
 
     f.handler().handle(System.TriggerOperation.BEFORE_INSERT, null, null);
 
@@ -56,7 +40,7 @@ private class QuoteTriggerHandlerTest {
   @IsTest
   static void afterUpdateTest() {
     Fixture f = new Fixture();
-    MethodSpy convert = f.newServiceMock.spyOn('convertQuotes');
+    MethodSpy convert = f.serviceMock.spyOn('convertQuotes');
     List<Quote> newQuotes = new List<Quote>{
       new Quote(Id = CHANGED_QUOTE_ID, Status = 'Accepted'),
       new Quote(Id = UNCHANGED_QUOTE_ID, Status = 'Draft'),

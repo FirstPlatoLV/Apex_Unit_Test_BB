@@ -139,7 +139,7 @@ Preferred: create one Custom Metadata Type for demo configuration:
 - Type: `Quote_Conversion_Policy__mdt`
 - Record: `Default`
 - Field: `Accepted_Quote_Status__c`, default value `Accepted`
-- Field: `Use_Legacy_Implementation__c`, default value `false`; the trigger handler uses it to select between legacy and refactored implementations behind `IQuoteToOrderService`
+- Field: `Use_Legacy_Implementation__c`, default value `false`; the trigger uses it to select the legacy or refactored `IQuoteToOrderService` implementation before constructing the trigger handler
 
 If this adds too much ceremony for the live demo, use a clearly isolated constant in a policy class and document how to change it. Do not scatter the status literal across services and tests.
 

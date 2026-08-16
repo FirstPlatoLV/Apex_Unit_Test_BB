@@ -1,9 +1,10 @@
 @IsTest
 private class QuoteTriggerTest {
-  private static final Id QUOTE_ID = TestUtility.getFakeId(Quote.SObjectType);
-
   @IsTest
   static void legacyImplementationTest() {
+    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
+      1
+    );
     Mock policyMock = Mock.forType(IQuoteConversionPolicy.class),
       legacyServiceMock = Mock.forType(IQuoteToOrderService.class),
       newServiceMock = Mock.forType(IQuoteToOrderService.class);
@@ -16,27 +17,27 @@ private class QuoteTriggerTest {
       );
     MethodSpy legacyConvert = legacyServiceMock.spyOn('convertQuotes'),
       newConvert = newServiceMock.spyOn('convertQuotes');
-    QuoteTriggerHandler handler = new QuoteTriggerHandler(
-      (IQuoteConversionPolicy) policyMock.stub,
-      (IQuoteToOrderService) legacyServiceMock.stub,
-      (IQuoteToOrderService) newServiceMock.stub
-    );
+    QuoteTriggerDependencies.policyOverride = (IQuoteConversionPolicy) policyMock.stub;
+    QuoteTriggerDependencies.legacyServiceOverride = (IQuoteToOrderService) legacyServiceMock.stub;
+    QuoteTriggerDependencies.newServiceOverride = (IQuoteToOrderService) newServiceMock.stub;
 
-    handler.handle(
-      System.TriggerOperation.AFTER_UPDATE,
-      new List<Quote>{ new Quote(Id = QUOTE_ID, Status = 'Accepted') },
-      new Map<Id, Quote>{
-        QUOTE_ID => new Quote(Id = QUOTE_ID, Status = 'Draft')
-      }
-    );
+    Test.startTest();
+    graph.quoteRecord.Status = 'Draft';
+    update graph.quoteRecord;
+    Test.stopTest();
 
     Expect.that(legacyConvert)
-      .hasBeenCalledWith(Argument.jsonEquals(new Set<Id>{ QUOTE_ID }));
+      .hasBeenCalledWith(
+        Argument.jsonEquals(new Set<Id>{ graph.quoteRecord.Id })
+      );
     Expect.that(newConvert).hasBeenCalledTimes(0);
   }
 
   @IsTest
   static void newImplementationTest() {
+    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
+      1
+    );
     Mock policyMock = Mock.forType(IQuoteConversionPolicy.class),
       legacyServiceMock = Mock.forType(IQuoteToOrderService.class),
       newServiceMock = Mock.forType(IQuoteToOrderService.class);
@@ -49,22 +50,19 @@ private class QuoteTriggerTest {
       );
     MethodSpy legacyConvert = legacyServiceMock.spyOn('convertQuotes'),
       newConvert = newServiceMock.spyOn('convertQuotes');
-    QuoteTriggerHandler handler = new QuoteTriggerHandler(
-      (IQuoteConversionPolicy) policyMock.stub,
-      (IQuoteToOrderService) legacyServiceMock.stub,
-      (IQuoteToOrderService) newServiceMock.stub
-    );
+    QuoteTriggerDependencies.policyOverride = (IQuoteConversionPolicy) policyMock.stub;
+    QuoteTriggerDependencies.legacyServiceOverride = (IQuoteToOrderService) legacyServiceMock.stub;
+    QuoteTriggerDependencies.newServiceOverride = (IQuoteToOrderService) newServiceMock.stub;
 
-    handler.handle(
-      System.TriggerOperation.AFTER_UPDATE,
-      new List<Quote>{ new Quote(Id = QUOTE_ID, Status = 'Accepted') },
-      new Map<Id, Quote>{
-        QUOTE_ID => new Quote(Id = QUOTE_ID, Status = 'Draft')
-      }
-    );
+    Test.startTest();
+    graph.quoteRecord.Status = 'Draft';
+    update graph.quoteRecord;
+    Test.stopTest();
 
     Expect.that(newConvert)
-      .hasBeenCalledWith(Argument.jsonEquals(new Set<Id>{ QUOTE_ID }));
+      .hasBeenCalledWith(
+        Argument.jsonEquals(new Set<Id>{ graph.quoteRecord.Id })
+      );
     Expect.that(legacyConvert).hasBeenCalledTimes(0);
   }
 

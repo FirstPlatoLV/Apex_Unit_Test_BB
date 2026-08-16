@@ -1,16 +1,8 @@
 public inherited sharing class QuoteTriggerHandler {
-  private final IQuoteConversionPolicy policy;
-  private final IQuoteToOrderService legacyService;
-  private final IQuoteToOrderService newService;
+  private final IQuoteToOrderService service;
 
-  public QuoteTriggerHandler(
-    IQuoteConversionPolicy policy,
-    IQuoteToOrderService legacyService,
-    IQuoteToOrderService newService
-  ) {
-    this.policy = policy;
-    this.legacyService = legacyService;
-    this.newService = newService;
+  public QuoteTriggerHandler(IQuoteToOrderService service) {
+    this.service = service;
   }
 
   public void handle(
@@ -39,11 +31,6 @@ public inherited sharing class QuoteTriggerHandler {
     }
 
     if (!changedQuoteIds.isEmpty()) {
-      Quote_Conversion_Policy__mdt conversionPolicy = policy.getPolicy();
-      IQuoteToOrderService service = conversionPolicy
-          ?.Use_Legacy_Implementation__c == true
-        ? legacyService
-        : newService;
       service.convertQuotes(changedQuoteIds);
     }
   }
