@@ -5,6 +5,7 @@
  * can be constructed; they complement isolated service tests.
  */
 private class QuoteTriggerDependenciesTest {
+  /** Verifies the composition root exposes the actual Default policy record. */
   @IsTest
   static void getPolicyTest() {
     Quote_Conversion_Policy__mdt actualPolicy = QuoteTriggerDependencies.getPolicy();
@@ -12,6 +13,7 @@ private class QuoteTriggerDependenciesTest {
     Assert.areEqual(LegacyQuoteConversionPolicy.getPolicy(), actualPolicy);
   }
 
+  /** Verifies the legacy branch is composed as the shared service interface. */
   @IsTest
   static void getLegacyServiceTest() {
     IQuoteToOrderService actualService = QuoteTriggerDependencies.getLegacyService();
@@ -19,6 +21,10 @@ private class QuoteTriggerDependenciesTest {
     Assert.isTrue(actualService instanceof LegacyQuoteToOrderService);
   }
 
+  /**
+   * Verifies the complete refactored production graph can be composed and can
+   * persist an Order, its item, and the Quote conversion link.
+   */
   @IsTest
   static void getNewServiceTest() {
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(

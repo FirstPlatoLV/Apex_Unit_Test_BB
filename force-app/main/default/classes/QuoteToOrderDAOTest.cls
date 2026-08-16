@@ -19,6 +19,7 @@ private class QuoteToOrderDAOTest {
     Order.SObjectType
   );
 
+  /** Verifies both production and dependency-injected constructors are usable. */
   @IsTest
   static void constructorTest() {
     Mock dmlMock = Mock.forType(IDMLExecutor.class);
@@ -28,6 +29,10 @@ private class QuoteToOrderDAOTest {
     Assert.isNotNull(new QuoteToOrderDAO(dml));
   }
 
+  /**
+   * Verifies deterministic Order-to-Quote mapping, OrderItem parent assignment,
+   * and the two expected insert calls without executing database writes.
+   */
   @IsTest
   static void saveOrdersTest() {
     Mock dmlMock = Mock.forType(IDMLExecutor.class);
@@ -56,6 +61,7 @@ private class QuoteToOrderDAOTest {
     Expect.that(insertRecords).hasBeenCalledTimes(2);
   }
 
+  /** Verifies the Quote lookup crosses exactly one real SOQL boundary. */
   @IsTest
   static void findQuotesTest() {
     QuoteToOrderDAO dao = new QuoteToOrderDAO();
@@ -72,6 +78,7 @@ private class QuoteToOrderDAOTest {
     Assert.isTrue(quotesById.isEmpty());
   }
 
+  /** Verifies the Quote Line lookup crosses exactly one real SOQL boundary. */
   @IsTest
   static void findQuoteLinesTest() {
     QuoteToOrderDAO dao = new QuoteToOrderDAO();
@@ -90,6 +97,10 @@ private class QuoteToOrderDAOTest {
     Assert.isTrue(quoteLines.isEmpty());
   }
 
+  /**
+   * Verifies Quote conversion updates are sorted, mapped to the correct Order
+   * IDs, and sent through IDMLExecutor with all-or-none enabled.
+   */
   @IsTest
   static void markQuotesConvertedTest() {
     Mock dmlMock = Mock.forType(IDMLExecutor.class);

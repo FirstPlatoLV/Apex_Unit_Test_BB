@@ -6,6 +6,10 @@
  * makes failures less isolated.
  */
 private class LegacyQuoteToOrderServiceTest {
+  /**
+   * Verifies the transitional interface method delegates to the legacy static
+   * conversion and returns the created Order and line count.
+   */
   @IsTest
   static void convertQuotesTest() {
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
@@ -20,12 +24,14 @@ private class LegacyQuoteToOrderServiceTest {
     Assert.areEqual(1, result.orderItemCount);
   }
 
+  /** Verifies null and empty bulk inputs return an empty result without work. */
   @IsTest
   static void nullAndEmptyInputTest() {
     Assert.areEqual(0, LegacyQuoteToOrderService.convert(null).size());
     Assert.areEqual(0, LegacyQuoteToOrderService.convert(new Set<Id>()).size());
   }
 
+  /** Verifies an ID not returned by the legacy query raises the expected error. */
   @IsTest
   static void unknownQuoteTest() {
     assertConversionError(
@@ -34,6 +40,7 @@ private class LegacyQuoteToOrderServiceTest {
     );
   }
 
+  /** Verifies a Quote linked to an existing Order cannot be converted again. */
   @IsTest
   static void alreadyConvertedQuoteTest() {
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
@@ -55,6 +62,7 @@ private class LegacyQuoteToOrderServiceTest {
     );
   }
 
+  /** Verifies an eligible Quote without an Account is rejected before DML. */
   @IsTest
   static void quoteWithoutAccountTest() {
     Opportunity opportunity = new Opportunity(
@@ -78,6 +86,7 @@ private class LegacyQuoteToOrderServiceTest {
     );
   }
 
+  /** Verifies an eligible Quote without a Price Book is rejected before DML. */
   @IsTest
   static void quoteWithoutPriceBookTest() {
     Account accountRecord = new Account(Name = 'No Price Book Account');
@@ -102,6 +111,7 @@ private class LegacyQuoteToOrderServiceTest {
     );
   }
 
+  /** Verifies an eligible Quote without lines is rejected before Order DML. */
   @IsTest
   static void quoteWithoutLinesTest() {
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
@@ -114,6 +124,10 @@ private class LegacyQuoteToOrderServiceTest {
     );
   }
 
+  /**
+   * Verifies the complete legacy mapping and persistence path: Order fields,
+   * Order Items, the result contract, and the Quote conversion link.
+   */
   @IsTest
   static void acceptedQuoteCreatesOrderAndLines() {
     Account accountRecord = new Account(Name = 'Brown-bag Account');
@@ -211,6 +225,7 @@ private class LegacyQuoteToOrderServiceTest {
     Assert.areEqual(orderId, savedQuote.Converted_Order__c);
   }
 
+  /** Verifies a Quote outside the configured status is silently ignored. */
   @IsTest
   static void nonAcceptedQuoteIsIgnored() {
     Account accountRecord = new Account(Name = 'Rejected Account');
@@ -239,6 +254,10 @@ private class LegacyQuoteToOrderServiceTest {
     );
   }
 
+  /**
+   * Verifies multiple Quotes and lines are converted in one bulk invocation and
+   * each Quote is linked to its corresponding persisted Order.
+   */
   @IsTest
   static void convertsMultipleQuotesWithBulkQueriesAndDml() {
     QuoteToOrderTestDataFactory.Graph first = QuoteToOrderTestDataFactory.createAcceptedQuote(
@@ -280,6 +299,7 @@ private class LegacyQuoteToOrderServiceTest {
     }
   }
 
+  /** Verifies a mixed batch converts only eligible Quotes. */
   @IsTest
   static void mixedEligibilityTest() {
     QuoteToOrderTestDataFactory.Graph accepted = QuoteToOrderTestDataFactory.createAcceptedQuote(

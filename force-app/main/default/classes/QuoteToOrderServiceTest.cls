@@ -46,6 +46,7 @@ private class QuoteToOrderServiceTest {
     }
   }
 
+  /** Verifies the service accepts its DAO, date, and policy dependencies. */
   @IsTest
   static void constructorTest() {
     Fixture f = new Fixture();
@@ -53,6 +54,7 @@ private class QuoteToOrderServiceTest {
     Assert.isNotNull(new QuoteToOrderService(f.dao, f.dates, f.policy));
   }
 
+  /** Verifies the interface entry point delegates and handles an empty batch. */
   @IsTest
   static void convertQuotesTest() {
     Assert.areEqual(
@@ -61,6 +63,11 @@ private class QuoteToOrderServiceTest {
     );
   }
 
+  /**
+   * Verifies the core conversion orchestration with mocks: mapping Orders and
+   * items, returning results, skipping invalid input and statuses, propagating
+   * DAO failures, and updating Quotes only after persistence succeeds.
+   */
   @IsTest
   static void convertTest() {
     Fixture f = configured(
@@ -139,6 +146,10 @@ private class QuoteToOrderServiceTest {
     Expect.that(failedMark).hasBeenCalledTimes(0);
   }
 
+  /**
+   * Verifies every private validation rule rejects already-converted Quotes,
+   * missing Accounts, missing Price Books, and missing Quote Lines before DML.
+   */
   @IsTest
   static void validateTest() {
     assertRejected(

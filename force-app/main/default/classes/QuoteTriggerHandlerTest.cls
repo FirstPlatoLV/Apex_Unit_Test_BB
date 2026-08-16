@@ -25,6 +25,7 @@ private class QuoteTriggerHandlerTest {
     }
   }
 
+  /** Verifies the handler accepts an IQuoteToOrderService dependency. */
   @IsTest
   static void constructorTest() {
     Fixture f = new Fixture();
@@ -32,6 +33,7 @@ private class QuoteTriggerHandlerTest {
     Assert.isNotNull(new QuoteTriggerHandler(f.service));
   }
 
+  /** Verifies trigger operations other than after update do not invoke conversion. */
   @IsTest
   static void handleTest() {
     Fixture f = new Fixture();
@@ -42,6 +44,10 @@ private class QuoteTriggerHandlerTest {
     Expect.that(convert).hasBeenCalledTimes(0);
   }
 
+  /**
+   * Verifies after update delegates only status-changed, unconverted Quote IDs,
+   * and makes no service call when every record is ineligible.
+   */
   @IsTest
   static void afterUpdateTest() {
     Fixture f = new Fixture();

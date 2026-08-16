@@ -5,6 +5,7 @@
  * their cost is infrastructure cost, not repeated service-unit-test cost.
  */
 private class DMLExecutorTest {
+  /** Verifies both insert overloads execute real Account DML successfully. */
   @IsTest
   static void insertRecordsTest() {
     DMLExecutor dml = new DMLExecutor();
@@ -17,6 +18,7 @@ private class DMLExecutorTest {
     );
   }
 
+  /** Verifies both update overloads persist changes to existing records. */
   @IsTest
   static void updateRecordsTest() {
     Account first = new Account(Name = 'one'),
@@ -36,6 +38,7 @@ private class DMLExecutorTest {
     );
   }
 
+  /** Verifies both external-ID upsert overloads complete successfully. */
   @IsTest
   static void upsertRecordsTest() {
     Account first = new Account(Name = 'one'),
@@ -56,6 +59,7 @@ private class DMLExecutorTest {
     );
   }
 
+  /** Verifies both delete overloads execute real soft-delete operations. */
   @IsTest
   static void deleteRecordsTest() {
     Account first = new Account(Name = 'one'),
@@ -73,6 +77,7 @@ private class DMLExecutorTest {
     );
   }
 
+  /** Verifies both undelete overloads restore previously deleted records. */
   @IsTest
   static void undeleteRecordsTest() {
     Account first = new Account(Name = 'one'),

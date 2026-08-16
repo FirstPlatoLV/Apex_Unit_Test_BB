@@ -11,6 +11,10 @@
  * reduced. Retain a small set of critical journeys to verify production wiring.
  */
 private class QuoteTriggerTest {
+  /**
+   * Verifies an eligible status transition runs the complete metadata-selected
+   * trigger path and persists an Order with every expected Order Item.
+   */
   @IsTest
   static void quoteTriggerTest() {
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
@@ -41,6 +45,10 @@ private class QuoteTriggerTest {
     );
   }
 
+  /**
+   * Verifies a transition to an ineligible status runs no conversion, leaving
+   * the Quote unlinked and creating no Order.
+   */
   @IsTest
   static void nonEligibleStatusTest() {
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
