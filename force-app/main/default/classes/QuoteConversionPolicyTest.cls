@@ -1,11 +1,11 @@
 @IsTest
-private class BrownbagDemoPolicyTest {
+private class QuoteConversionPolicyTest {
   @IsTest
   static void acceptedQuoteStatusTest() {
-    Brownbag_Demo_Config__mdt config = Brownbag_Demo_Config__mdt.getInstance(
+    Quote_Conversion_Policy__mdt config = Quote_Conversion_Policy__mdt.getInstance(
       'Default'
     );
-    BrownbagDemoPolicy policy = new BrownbagDemoPolicy();
+    QuoteConversionPolicy policy = new QuoteConversionPolicy();
     Assert.areEqual(
       config?.Accepted_Quote_Status__c,
       policy.acceptedQuoteStatus()

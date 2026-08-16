@@ -4,7 +4,7 @@ This Salesforce DX project contrasts a tightly coupled Quote-to-Order implementa
 
 ## Architecture
 
-`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete methods on `LegacyQuoteToOrderDAO` and `BrownbagDemoPolicy`. The refactored path mirrors that shape with injectable `IQuoteToOrderDAO`, `IDateProvider`, and `IQuoteToOrderPolicy` dependencies. `BrownbagDemoPolicy` is a thin adapter around the static Custom Metadata API, allowing service tests to mock the accepted status without requiring metadata records. Both services expose bulk conversion; the new service owns rules and mapping, its DAO owns persistence orchestration, and an injected `IDMLExecutor` isolates the actual `Database` calls. `QuoteToOrderServiceFactory` composes production dependencies, and `QuoteToOrder` preserves a static caller API.
+`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete methods on `LegacyQuoteToOrderDAO` and `QuoteConversionPolicy`. The refactored path mirrors that shape with injectable `IQuoteToOrderDAO`, `IDateProvider`, and `IQuoteConversionPolicy` dependencies. `QuoteConversionPolicy` is a thin adapter around the static Custom Metadata API, allowing service tests to mock the accepted status without requiring metadata records. Both services expose bulk conversion; the new service owns rules and mapping, its DAO owns persistence orchestration, and an injected `IDMLExecutor` isolates the actual `Database` calls. `QuoteToOrderServiceFactory` composes production dependencies, and `QuoteToOrder` preserves a static caller API.
 
 All production classes use `inherited sharing`: callers determine record-sharing behavior, while the permission set grants explicit CRUD/FLS for manual demonstration. This sample is intentionally not a production-grade security framework.
 
@@ -25,7 +25,7 @@ If Quote/QuoteLineItem is absent, enable Quotes; if Order/OrderItem is absent, e
 ./scripts/preflight.sh unittestorg
 ```
 
-The default Custom Metadata record accepts Quote status `Accepted`. Change `force-app/main/default/customMetadata/Brownbag_Demo_Config.Default.md-meta.xml` if preflight reports a different active business status.
+The default Custom Metadata record accepts Quote status `Accepted`. Change `force-app/main/default/customMetadata/Quote_Conversion_Policy.Default.md-meta.xml` if preflight reports a different active business status.
 
 Apex Stub API mocks cannot cross a managed-package namespace boundary. This verified org and Apex Mockery install are both unnamespaced, so the limitation does not apply; revisit the packaging strategy in a namespaced org.
 
@@ -41,8 +41,8 @@ Apex Stub API mocks cannot cross a managed-package namespace boundary. This veri
 Bash equivalents with the same filenames are also provided. Manual commands:
 
 ```text
-sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests BrownbagDemoPolicyTest --tests QuoteToOrderServiceFactoryTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests TestUtilityTest --tests QuoteToOrderFacadeTest --wait 30
-sf org assign permset --name Brownbag_Testable_Apex --target-org unittestorg
+sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests QuoteConversionPolicyTest --tests QuoteToOrderServiceFactoryTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests TestUtilityTest --tests QuoteToOrderFacadeTest --wait 30
+sf org assign permset --name Quote_Conversion --target-org unittestorg
 sf apex run test --target-org unittestorg --tests LegacyQuoteToOrderServiceTest --synchronous --result-format json
 sf apex run test --target-org unittestorg --tests QuoteToOrderServiceTest --synchronous --result-format json
 sf org open --target-org unittestorg
@@ -58,7 +58,7 @@ Refactored-path tests use a method-oriented convention: each production method, 
 - `DMLExecutor`: a reusable, object-agnostic wrapper around bulk insert, upsert, update, delete, and undelete `Database` calls, including `allOrNone`, external-ID, and access-level parameters.
 - `QuoteToOrderServiceFactory`: production composition root.
 - `QuoteToOrder` / `QuoteToOrderFacadeTest`: static compatibility API and integration path.
-- `BrownbagDemoPolicy`: reads the `Default` Custom Metadata configuration.
+- `QuoteConversionPolicy`: reads the `Default` Custom Metadata configuration.
 
 The benchmark runs each suite once for warm-up and five measured times, sequentially and synchronously. It saves every raw CLI JSON response plus `summary.csv` and `summary.md`. Results vary with org load and automation.
 

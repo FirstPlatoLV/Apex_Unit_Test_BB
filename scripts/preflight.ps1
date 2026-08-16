@@ -15,7 +15,7 @@ foreach ($name in $required) {
     Write-Host "OK $name (queryable=$($description.result.queryable), createable=$($description.result.createable))"
     if ($name -eq 'Quote') {
         $statuses = $description.result.fields | Where-Object name -eq 'Status' | Select-Object -ExpandProperty picklistValues | Where-Object active | Select-Object -ExpandProperty value
-        if ($statuses -notcontains 'Accepted') { Write-Error "Quote status Accepted is not active. Change Brownbag_Demo_Config.Default before deployment."; exit 1 }
+        if ($statuses -notcontains 'Accepted') { Write-Error "Quote status Accepted is not active. Change Quote_Conversion_Policy.Default before deployment."; exit 1 }
     }
 }
 $packages = sf data query --target-org $TargetOrg --use-tooling-api --query "SELECT SubscriberPackage.Name, SubscriberPackage.NamespacePrefix, SubscriberPackageVersion.MajorVersion, SubscriberPackageVersion.MinorVersion, SubscriberPackageVersion.PatchVersion, SubscriberPackageVersion.BuildNumber FROM InstalledSubscriberPackage WHERE SubscriberPackage.Name = 'Apex Mockery'" --json | ConvertFrom-Json

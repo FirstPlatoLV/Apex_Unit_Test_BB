@@ -21,7 +21,7 @@ public inherited sharing class LegacyQuoteToOrderService {
       linesByQuoteId.get(quoteLine.QuoteId).add(quoteLine);
     }
 
-    String acceptedStatus = new BrownbagDemoPolicy().acceptedQuoteStatus();
+    String acceptedStatus = new QuoteConversionPolicy().acceptedQuoteStatus();
     List<Id> orderedQuoteIds = new List<Id>(quoteIds);
     orderedQuoteIds.sort();
     List<Order> orders = new List<Order>();

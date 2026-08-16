@@ -1,5 +1,5 @@
 @IsTest
-public class BrownbagTestDataFactory {
+public class QuoteToOrderTestDataFactory {
   public class Graph {
     public Account account;
     public Opportunity opportunity;

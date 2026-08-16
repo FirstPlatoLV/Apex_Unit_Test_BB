@@ -124,10 +124,10 @@ private class LegacyQuoteToOrderServiceTest {
 
   @IsTest
   static void convertsMultipleQuotesWithBulkQueriesAndDml() {
-    BrownbagTestDataFactory.Graph first = BrownbagTestDataFactory.createAcceptedQuote(
+    QuoteToOrderTestDataFactory.Graph first = QuoteToOrderTestDataFactory.createAcceptedQuote(
       2
     );
-    BrownbagTestDataFactory.Graph second = BrownbagTestDataFactory.createAcceptedQuote(
+    QuoteToOrderTestDataFactory.Graph second = QuoteToOrderTestDataFactory.createAcceptedQuote(
       1
     );
     Set<Id> quoteIds = new Set<Id>{

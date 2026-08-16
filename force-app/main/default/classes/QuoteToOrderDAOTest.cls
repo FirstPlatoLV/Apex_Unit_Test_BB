@@ -43,10 +43,10 @@ private class QuoteToOrderDAOTest {
 
   @IsTest
   static void findQuotesTest() {
-    BrownbagTestDataFactory.Graph first = BrownbagTestDataFactory.createAcceptedQuote(
+    QuoteToOrderTestDataFactory.Graph first = QuoteToOrderTestDataFactory.createAcceptedQuote(
         2
       ),
-      second = BrownbagTestDataFactory.createAcceptedQuote(1);
+      second = QuoteToOrderTestDataFactory.createAcceptedQuote(1);
     Set<Id> quoteIds = new Set<Id>{
       first.quoteRecord.Id,
       second.quoteRecord.Id
@@ -57,7 +57,7 @@ private class QuoteToOrderDAOTest {
 
   @IsTest
   static void findQuoteLinesTest() {
-    BrownbagTestDataFactory.Graph graph = BrownbagTestDataFactory.createAcceptedQuote(
+    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
       2
     );
     Assert.areEqual(

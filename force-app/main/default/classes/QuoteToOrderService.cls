@@ -1,12 +1,12 @@
 public inherited sharing class QuoteToOrderService {
   private final IQuoteToOrderDAO dao;
   private final IDateProvider dateProvider;
-  private final IQuoteToOrderPolicy policy;
+  private final IQuoteConversionPolicy policy;
 
   public QuoteToOrderService(
     IQuoteToOrderDAO dao,
     IDateProvider dateProvider,
-    IQuoteToOrderPolicy policy
+    IQuoteConversionPolicy policy
   ) {
     this.dao = dao;
     this.dateProvider = dateProvider;

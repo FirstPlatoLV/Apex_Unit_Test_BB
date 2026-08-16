@@ -136,7 +136,7 @@ The Quote is considered already converted when this field is populated.
 
 Preferred: create one Custom Metadata Type for demo configuration:
 
-- Type: `Brownbag_Demo_Config__mdt`
+- Type: `Quote_Conversion_Policy__mdt`
 - Record: `Default`
 - Field: `Accepted_Quote_Status__c`
 - Default value: `Accepted`
@@ -145,7 +145,7 @@ If this adds too much ceremony for the live demo, use a clearly isolated constan
 
 ### 5.3 Permission set
 
-Create a permission set named `Brownbag_Testable_Apex` granting:
+Create a permission set named `Quote_Conversion` granting:
 
 - Apex class access to demo entry points;
 - read/write access to `Quote.Converted_Order__c`;
@@ -162,7 +162,7 @@ force-app/main/default/
   classes/
   objects/Quote/fields/
   customMetadata/                    # if configuration metadata is used
-  objects/Brownbag_Demo_Config__mdt/ # if configuration metadata is used
+  objects/Quote_Conversion_Policy__mdt/ # if configuration metadata is used
   permissionsets/
 scripts/
   preflight.*
@@ -485,7 +485,7 @@ Document and, where practical, script these steps:
 5. Install or deploy the pinned Apex Mockery dependency.
 6. Deploy custom field/configuration metadata.
 7. Deploy Apex classes and tests.
-8. Assign `Brownbag_Testable_Apex` permission set.
+8. Assign `Quote_Conversion` permission set.
 9. Run all demo tests.
 10. Run benchmark suites.
 11. Print commands for opening the org and locating the relevant records.

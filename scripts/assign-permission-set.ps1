@@ -1,2 +1,2 @@
 param([Parameter(Mandatory=$true)][string]$TargetOrg)
-sf org assign permset --name Brownbag_Testable_Apex --target-org $TargetOrg
+sf org assign permset --name Quote_Conversion --target-org $TargetOrg

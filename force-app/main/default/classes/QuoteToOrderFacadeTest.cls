@@ -2,7 +2,7 @@
 private class QuoteToOrderFacadeTest {
   @IsTest
   static void convertTest() {
-    BrownbagTestDataFactory.Graph graph = BrownbagTestDataFactory.createAcceptedQuote(
+    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
       2
     );
     Id orderId = QuoteToOrder.convert(graph.quoteRecord.Id);

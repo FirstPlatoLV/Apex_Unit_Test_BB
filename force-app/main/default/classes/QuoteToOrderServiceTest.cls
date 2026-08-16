@@ -21,10 +21,10 @@ private class QuoteToOrderServiceTest {
   private class Fixture {
     Mock daoMock = Mock.forType(IQuoteToOrderDAO.class),
       dateMock = Mock.forType(IDateProvider.class),
-      policyMock = Mock.forType(IQuoteToOrderPolicy.class);
+      policyMock = Mock.forType(IQuoteConversionPolicy.class);
     IQuoteToOrderDAO dao = (IQuoteToOrderDAO) daoMock.stub;
     IDateProvider dates = (IDateProvider) dateMock.stub;
-    IQuoteToOrderPolicy policy = (IQuoteToOrderPolicy) policyMock.stub;
+    IQuoteConversionPolicy policy = (IQuoteConversionPolicy) policyMock.stub;
 
     Fixture() {
       policyMock.spyOn('acceptedQuoteStatus').returns('Accepted');
