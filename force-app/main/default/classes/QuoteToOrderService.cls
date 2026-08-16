@@ -1,4 +1,4 @@
-public inherited sharing class QuoteToOrderService {
+public inherited sharing class QuoteToOrderService implements IQuoteToOrderService {
   private final IQuoteToOrderDAO dao;
   private final IDateProvider dateProvider;
   private final IQuoteConversionPolicy policy;

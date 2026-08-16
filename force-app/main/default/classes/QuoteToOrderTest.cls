@@ -5,7 +5,10 @@ private class QuoteToOrderTest {
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
       2
     );
-    Id orderId = QuoteToOrder.convert(graph.quoteRecord.Id);
+    Map<Id, QuoteToOrderResult> results = QuoteToOrder.convert(
+      new Set<Id>{ graph.quoteRecord.Id }
+    );
+    Id orderId = results.get(graph.quoteRecord.Id).orderId;
     Order saved = [
       SELECT AccountId, Pricebook2Id, Status
       FROM Order
@@ -30,6 +33,9 @@ private class QuoteToOrderTest {
     );
     skipped.quoteRecord.Status = 'Draft';
     update skipped.quoteRecord;
-    Assert.isNull(QuoteToOrder.convert(skipped.quoteRecord.Id));
+    Assert.isFalse(
+      QuoteToOrder.convert(new Set<Id>{ skipped.quoteRecord.Id })
+        .containsKey(skipped.quoteRecord.Id)
+    );
   }
 }

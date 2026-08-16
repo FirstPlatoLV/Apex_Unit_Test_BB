@@ -7,23 +7,6 @@ trigger QuoteTrigger on Quote(
   after delete,
   after undelete
 ) {
-  if (Trigger.isAfter && Trigger.isUpdate) {
-    String acceptedStatus = LegacyQuoteConversionPolicy.acceptedQuoteStatus();
-    Set<Id> eligibleQuoteIds = new Set<Id>();
-
-    for (Quote quoteRecord : Trigger.new) {
-      Quote oldQuote = Trigger.oldMap.get(quoteRecord.Id);
-      if (
-        quoteRecord.Status == acceptedStatus &&
-        oldQuote.Status != acceptedStatus &&
-        quoteRecord.Converted_Order__c == null
-      ) {
-        eligibleQuoteIds.add(quoteRecord.Id);
-      }
-    }
-
-    if (!eligibleQuoteIds.isEmpty()) {
-      QuoteToOrder.convert(eligibleQuoteIds);
-    }
-  }
+  new QuoteTriggerHandler(QuoteToOrderServiceFactory.createDefault())
+    .handle(Trigger.operationType, Trigger.new, Trigger.oldMap);
 }

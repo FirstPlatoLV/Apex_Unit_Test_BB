@@ -347,10 +347,10 @@ QuoteToOrder
 Recommended API:
 
 ```apex
-public static Id convert(Id quoteId)
+public static Map<Id, QuoteToOrderResult> convert(Set<Id> quoteIds)
 ```
 
-The façade delegates to `QuoteToOrderServiceFactory.createDefault()` and returns the resulting Order ID.
+The façade delegates to `QuoteToOrderServiceFactory.createDefault()` and returns results keyed by eligible Quote ID.
 
 This demonstrates how existing static callers can coexist with the new instance-based design.
 

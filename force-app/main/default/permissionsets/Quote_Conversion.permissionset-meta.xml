@@ -14,6 +14,8 @@
     >true</enabled></classAccesses>
     <classAccesses><apexClass>QuoteToOrderService</apexClass><enabled
     >true</enabled></classAccesses>
+    <classAccesses><apexClass>QuoteTriggerHandler</apexClass><enabled
+    >true</enabled></classAccesses>
     <description
   >Minimum access required to run Quote-to-Order conversion.</description>
     <fieldPermissions>
