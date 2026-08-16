@@ -1,6 +1,6 @@
 # Brown-bag demonstration runbook
 
-1. Run `scripts/preflight.ps1 unittestorg`; point out standard objects, `Accepted`, and Apex Mockery 2.3.0.1.
+1. Run `scripts/preflight.ps1 <ORG_ALIAS>`; point out standard objects, `Accepted`, and Apex Mockery 2.3.0.1.
 2. Show `LegacyQuoteToOrderService.convert(Set<Id>)` and `LegacyQuoteToOrderDAO`: the code is responsibly bulkified and layered, but concrete static calls and the system clock remain non-substitutable.
 3. Show the complete data graph in `LegacyQuoteToOrderServiceTest.cls`, then run it.
 4. Show the five interfaces, injected `QuoteToOrderService` and `QuoteTriggerHandler`, and the production factory.

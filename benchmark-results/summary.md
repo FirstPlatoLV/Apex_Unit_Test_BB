@@ -1,6 +1,6 @@
 # Benchmark summary
 
-- Org alias: `unittestorg`
+- Org alias: `<ORG_ALIAS>`
 - Date: 2026-08-16
 - API version: 67.0
 - Runs: one warm-up plus five measured runs per suite, synchronous and sequential

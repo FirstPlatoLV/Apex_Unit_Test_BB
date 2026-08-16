@@ -63,6 +63,30 @@ The trigger-side components sit outside the service comparison. `QuoteTrigger` r
 
 All production classes use `inherited sharing`: callers determine record-sharing behavior, while the permission set grants explicit CRUD/FLS for manual demonstration. This sample is intentionally not a production-grade security framework.
 
+## Quote-to-Order process
+
+Conversion starts when an existing Quote is updated and its status changes. The trigger delegates the changed Quote to the selected service, which compares the Quote status with `Accepted_Quote_Status__c` from the `Quote_Conversion_Policy.Default` Custom Metadata record. The Opportunity stage does not control eligibility in this example; the default accepted Quote status is `Accepted`.
+
+For an eligible Quote, the service loads its Quote Lines, validates the source data, creates one draft Order, creates an Order Item for every Quote Line, and stores the new Order ID in `Quote.Converted_Order__c`. The conversion is bulkified, so one trigger invocation can process multiple Quotes.
+
+A realistic Quote test requires more than the Quote itself. Salesforce requires the surrounding sales data graph:
+
+```text
+Account
+  └─ Opportunity
+       └─ Quote
+            └─ Quote Line Items
+
+Price Book
+  └─ Price Book Entries
+       ├─ Quote Line Items
+       └─ Order Items
+```
+
+The Account supplies the future `Order.AccountId`, while the Opportunity is the required parent used to create the Quote. The Quote and Opportunity use the same Price Book, and each Quote Line references an active Price Book Entry. This is why the integration and E2E tests must create Accounts, Opportunities, Products, Price Book Entries, Quotes, and Quote Lines before they can verify Order creation.
+
+The positive scenario changes a complete Quote from another status to the configured accepted status. It verifies that the trigger creates the Order and all Order Items and links the Order back to the Quote. Negative scenarios verify that no Order is created when the Quote moves to a non-eligible status, and that conversion is rejected when an eligible Quote was already converted or is missing its Account, Price Book, or Quote Lines. Unit tests also simulate a persistence exception and verify that the Quote is not marked converted and that the trigger reports a record-level error.
+
 ## Prerequisites and preflight
 
 - Salesforce CLI and an authenticated target org.
@@ -73,11 +97,11 @@ All production classes use `inherited sharing`: callers determine record-sharing
 If Quote/QuoteLineItem is absent, enable Quotes; if Order/OrderItem is absent, enable Orders. Feature enablement is an org-level Setup action, separate from deployment. Never create custom substitutes.
 
 ```powershell
-.\scripts\preflight.ps1 unittestorg
+.\scripts\preflight.ps1 <ORG_ALIAS>
 ```
 
 ```bash
-./scripts/preflight.sh unittestorg
+./scripts/preflight.sh <ORG_ALIAS>
 ```
 
 The default Custom Metadata record accepts Quote status `Accepted` and sets `Use_Legacy_Implementation__c` to `false`. The policy API returns the complete record so callers can retrieve both values with one lookup. Change `force-app/main/default/customMetadata/Quote_Conversion_Policy.Default.md-meta.xml` if preflight reports a different active business status.
@@ -87,21 +111,21 @@ Apex Stub API mocks cannot cross a managed-package namespace boundary. This veri
 ## Deploy and test
 
 ```powershell
-.\scripts\deploy.ps1 unittestorg
-.\scripts\assign-permission-set.ps1 unittestorg
-.\scripts\run-demo-tests.ps1 unittestorg
-.\scripts\benchmark-tests.ps1 unittestorg
+.\scripts\deploy.ps1 <ORG_ALIAS>
+.\scripts\assign-permission-set.ps1 <ORG_ALIAS>
+.\scripts\run-demo-tests.ps1 <ORG_ALIAS>
+.\scripts\benchmark-tests.ps1 <ORG_ALIAS>
 ```
 
 Bash equivalents with the same filenames are also provided. Manual commands:
 
 ```text
-sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests LegacyQuoteConversionPolicyTest --tests QuoteConversionPolicyTest --tests QuoteTriggerDependenciesTest --tests QuoteTriggerHandlerTest --tests QuoteTriggerTest --tests QuoteToOrderExceptionTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests TestUtilityTest --wait 30
-sf org assign permset --name Quote_Conversion --target-org unittestorg
-sf apex run test --target-org unittestorg --tests LegacyQuoteToOrderServiceTest --synchronous --result-format json
-sf apex run test --target-org unittestorg --tests QuoteToOrderServiceTest --synchronous --result-format json
-sf org open --target-org unittestorg
+sf project deploy start --target-org <ORG_ALIAS> --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests LegacyQuoteConversionPolicyTest --tests QuoteConversionPolicyTest --tests QuoteTriggerDependenciesTest --tests QuoteTriggerHandlerTest --tests QuoteTriggerTest --tests QuoteToOrderExceptionTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests TestUtilityTest --wait 30
+sf org assign permset --name Quote_Conversion --target-org <ORG_ALIAS>
+sf apex run test --target-org <ORG_ALIAS> --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests LegacyQuoteConversionPolicyTest --tests QuoteConversionPolicyTest --tests QuoteTriggerDependenciesTest --tests QuoteTriggerHandlerTest --tests QuoteTriggerTest --tests QuoteToOrderExceptionTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests TestUtilityTest --wait 30 --result-format human --code-coverage
 ```
+
+The complete test command runs all 13 repository test classes. The implementation benchmarks require multi-class runs and wall-clock measurement, so use `benchmark-tests.ps1` or `benchmark-tests.sh` instead of adding `--synchronous` to the manual command. Optionally run `sf org open --target-org <ORG_ALIAS>` when preparing the interactive demonstration.
 
 ## Class and test map
 
@@ -136,12 +160,12 @@ Each suite ran once for warm-up followed by five measured runs. The runs within 
 
 | Suite      | Salesforce median | Salesforce range | Wall median |      Wall range |
 | ---------- | ----------------: | ---------------: | ----------: | --------------: |
-| Legacy     |          2,261 ms |   1,444–2,774 ms |    8,535 ms | 6,490–17,579 ms |
-| Refactored |            308 ms |       191–463 ms |    3,456 ms |  3,440–5,476 ms |
+| Legacy     |          2,331 ms |   1,296–2,779 ms |    9,513 ms |  6,498–9,535 ms |
+| Refactored |            306 ms |       102–492 ms |    5,490 ms | 3,459–10,506 ms |
 
-In these measurements, the refactored suite used 86.4% less Salesforce execution time and had a 7.3× lower median. Its median wall time was 59.5% lower. Results vary with org load and automation; the measured advantage demonstrates the feedback-speed benefit of isolated tests rather than promising an identical ratio in every org.
+In these measurements, the refactored suite used 86.9% less Salesforce execution time and had a 7.6× lower median. Its median wall time was 42.3% lower. Results vary with org load and automation; the measured advantage demonstrates the feedback-speed benefit of isolated tests rather than promising an identical ratio in every org.
 
-The legacy timing includes the one shared `@TestSetup` execution, but its method count reports only the 12 actual test methods. The current results are preserved in the [legacy summary](benchmark-results/legacy-20260816-212308/summary.md), [legacy CSV](benchmark-results/legacy-20260816-212308/summary.csv), [legacy raw JSON](benchmark-results/legacy-20260816-212308/raw/), [refactored summary](benchmark-results/refactored-20260816-211041/summary.md), [refactored CSV](benchmark-results/refactored-20260816-211041/summary.csv), and [refactored raw JSON](benchmark-results/refactored-20260816-211041/raw/).
+The legacy timing includes the one shared `@TestSetup` execution, but its method count reports only the 12 actual test methods. The current results are preserved in the [legacy summary](benchmark-results/legacy-20260816-213442/summary.md), [legacy CSV](benchmark-results/legacy-20260816-213442/summary.csv), [legacy raw JSON](benchmark-results/legacy-20260816-213442/raw/), [refactored summary](benchmark-results/refactored-20260816-213544/summary.md), [refactored CSV](benchmark-results/refactored-20260816-213544/summary.csv), and [refactored raw JSON](benchmark-results/refactored-20260816-213544/raw/).
 
 Run `benchmark-tests.ps1` or `benchmark-tests.sh` to execute both current suites. Use `benchmark-legacy` or `benchmark-refactored` with the matching script extension to measure one side independently. Each runner creates a timestamped result directory instead of overwriting prior evidence.
 
@@ -229,16 +253,16 @@ Set `Use_Legacy_Implementation__c` on the org's `Quote_Conversion_Policy.Default
 Single run, including the per-method runtime breakdown:
 
 ```text
-sf apex run test --target-org unittestorg --tests QuoteTriggerTest --synchronous --result-format human --code-coverage
+sf apex run test --target-org <ORG_ALIAS> --tests QuoteTriggerTest --synchronous --result-format human --code-coverage
 ```
 
 PowerShell warm-up and five measured JSON runs:
 
 ```powershell
-sf apex run test --target-org unittestorg --tests QuoteTriggerTest --synchronous --result-format json | Out-Null
+sf apex run test --target-org <ORG_ALIAS> --tests QuoteTriggerTest --synchronous --result-format json | Out-Null
 
 1..5 | ForEach-Object {
-    sf apex run test --target-org unittestorg --tests QuoteTriggerTest --synchronous --result-format json |
+    sf apex run test --target-org <ORG_ALIAS> --tests QuoteTriggerTest --synchronous --result-format json |
         Set-Content -Encoding utf8 "quote-trigger-run-$_.json"
 }
 ```
@@ -246,10 +270,10 @@ sf apex run test --target-org unittestorg --tests QuoteTriggerTest --synchronous
 Bash warm-up and five measured JSON runs:
 
 ```bash
-sf apex run test --target-org unittestorg --tests QuoteTriggerTest --synchronous --result-format json >/dev/null
+sf apex run test --target-org <ORG_ALIAS> --tests QuoteTriggerTest --synchronous --result-format json >/dev/null
 
 for run in 1 2 3 4 5; do
-  sf apex run test --target-org unittestorg --tests QuoteTriggerTest --synchronous --result-format json \
+  sf apex run test --target-org <ORG_ALIAS> --tests QuoteTriggerTest --synchronous --result-format json \
     >"quote-trigger-run-${run}.json"
 done
 ```

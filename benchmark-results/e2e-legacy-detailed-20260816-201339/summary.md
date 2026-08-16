@@ -1,6 +1,6 @@
 # Legacy E2E detailed benchmark
 
-- Org alias: unittestorg
+- Org alias: `<ORG_ALIAS>`
 - Date: 2026-08-16
 - Use_Legacy_Implementation__c: true (set manually in the org)
 - QuoteTriggerTest uses actual Custom Metadata and production dependencies

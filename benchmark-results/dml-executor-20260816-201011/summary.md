@@ -1,6 +1,6 @@
 # DMLExecutor infrastructure benchmark
 
-- Org alias: unittestorg
+- Org alias: `<ORG_ALIAS>`
 - Date: 2026-08-16
 - One warm-up plus five measured synchronous runs
 - DMLExecutorTest is reusable infrastructure and is excluded from service-suite timings
