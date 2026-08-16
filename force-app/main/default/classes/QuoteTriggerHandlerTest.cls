@@ -53,11 +53,24 @@ private class QuoteTriggerHandlerTest {
       ),
       CONVERTED_QUOTE_ID => new Quote(Id = CONVERTED_QUOTE_ID, Status = 'Draft')
     };
+    QuoteTriggerHandler handler = new QuoteTriggerHandler(service);
 
-    new QuoteTriggerHandler(service)
-      .handle(System.TriggerOperation.AFTER_UPDATE, newQuotes, oldQuotesById);
+    handler.handle(
+      System.TriggerOperation.AFTER_UPDATE,
+      new List<Quote>{ newQuotes[1], newQuotes[2] },
+      oldQuotesById
+    );
+
+    Expect.that(convert).hasBeenCalledTimes(0);
+
+    handler.handle(
+      System.TriggerOperation.AFTER_UPDATE,
+      newQuotes,
+      oldQuotesById
+    );
 
     Expect.that(convert)
       .hasBeenCalledWith(Argument.jsonEquals(new Set<Id>{ CHANGED_QUOTE_ID }));
+    Expect.that(convert).hasBeenCalledTimes(1);
   }
 }
