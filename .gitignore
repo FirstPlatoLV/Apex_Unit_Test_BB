@@ -42,6 +42,9 @@ $RECYCLE.BIN/
 # Local environment variables
 .env
 
+# Locally generated brown-bag presentation
+Testable_Apex_Brownbag.pptx
+
 # Python Salesforce Functions
 **/__pycache__/
 **/.venv/

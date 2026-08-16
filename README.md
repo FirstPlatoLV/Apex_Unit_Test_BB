@@ -26,7 +26,8 @@ flowchart TB
 
   StaticLogic -->|"hardwired static call"| LegacyDAO
   LegacyDAO --> SOQL
-  LegacyDAO --> Database
+  StaticLogic -->|"direct Order / OrderItem DML"| Database
+  LegacyDAO -->|"mapped Quote update"| Database
 
   StaticLogic -->|"hardwired system clock"| SystemDate
 ```
@@ -131,7 +132,7 @@ The complete test command runs all 13 repository test classes. The implementatio
 
 Refactored-path tests use a method-oriented convention: each production method, including private methods exercised through public behavior, has a dedicated `<methodName>Test` method. One test covers all overloads sharing the same production method name.
 
-- `LegacyQuoteToOrderService` / `LegacyQuoteToOrderDAO` / `LegacyQuoteToOrderServiceTest`: bulk-safe static coupling through set-based query/DML wrappers and complete persisted data graphs.
+- `LegacyQuoteToOrderService` / `LegacyQuoteToOrderDAO` / `LegacyQuoteToOrderServiceTest`: bulk-safe static query coupling, direct service DML for straightforward inserts, DAO-mapped Quote updates, and complete persisted data graphs.
 - `QuoteToOrderService` / `QuoteToOrderServiceTest`: injected business logic with method-oriented Mockery tests and no SOQL/DML.
 - `QuoteToOrderDAO` / `QuoteToOrderDAOTest`: combined, bulk persistence behavior with mapping tested independently through a mocked `IDMLExecutor`.
 - `DMLExecutor`: a reusable, object-agnostic wrapper around bulk insert, upsert, update, delete, and undelete `Database` calls, including `allOrNone`, external-ID, and access-level parameters.

@@ -6,6 +6,9 @@
  */
 private class QuoteToOrderServiceTest {
   private static final Id QUOTE_ID = TestUtility.getFakeId(Quote.SObjectType);
+  private static final Id QUOTE_TWO_ID = TestUtility.getFakeId(
+    Quote.SObjectType
+  );
   private static final Id ACCOUNT_ID = TestUtility.getFakeId(
     Account.SObjectType
   );
@@ -157,6 +160,96 @@ private class QuoteToOrderServiceTest {
     Expect.that(failedMark).hasBeenCalledTimes(0);
   }
 
+  /** Verifies only Quotes matching the supplied accepted status are selected. */
+  @IsTest
+  static void selectEligibleQuoteIdsTest() {
+    Map<Id, Quote> quotesById = new Map<Id, Quote>{
+      QUOTE_ID => quoteWith('Accepted', null, ACCOUNT_ID, PRICEBOOK_ID),
+      QUOTE_TWO_ID => quoteWithId(
+        QUOTE_TWO_ID,
+        'Draft',
+        null,
+        ACCOUNT_ID,
+        PRICEBOOK_ID
+      )
+    };
+
+    Set<Id> result = new Fixture()
+      .service()
+      .selectEligibleQuoteIds(quotesById, 'Accepted');
+
+    Assert.areEqual(new Set<Id>{ QUOTE_ID }, result);
+  }
+
+  /** Verifies Quote Lines are grouped by their parent Quote ID. */
+  @IsTest
+  static void groupQuoteLinesTest() {
+    Map<Id, List<QuoteLineItem>> result = new Fixture()
+      .service()
+      .groupQuoteLines(twoLines());
+
+    Assert.areEqual(1, result.size());
+    Assert.areEqual(2, result.get(QUOTE_ID).size());
+  }
+
+  /** Verifies validated Quotes are mapped to draft Orders. */
+  @IsTest
+  static void buildOrdersTest() {
+    Quote quoteRecord = quoteWith('Accepted', null, ACCOUNT_ID, PRICEBOOK_ID);
+    Map<Id, List<QuoteLineItem>> linesByQuoteId = new Map<Id, List<QuoteLineItem>>{
+      QUOTE_ID => twoLines()
+    };
+
+    Order result = new Fixture()
+      .service()
+      .buildOrders(
+        new Set<Id>{ QUOTE_ID },
+        new Map<Id, Quote>{ QUOTE_ID => quoteRecord },
+        linesByQuoteId,
+        FIXED_DATE
+      )
+      .get(QUOTE_ID);
+
+    Assert.areEqual(ACCOUNT_ID, result.AccountId);
+    Assert.areEqual(FIXED_DATE, result.EffectiveDate);
+    Assert.areEqual(PRICEBOOK_ID, result.Pricebook2Id);
+    Assert.areEqual('Draft', result.Status);
+  }
+
+  /** Verifies Quote Lines are mapped to unpersisted Order Items. */
+  @IsTest
+  static void buildOrderItemsTest() {
+    Map<Id, List<OrderItem>> result = new Fixture()
+      .service()
+      .buildOrderItems(
+        new Set<Id>{ QUOTE_ID },
+        new Map<Id, List<QuoteLineItem>>{ QUOTE_ID => twoLines() }
+      );
+
+    Assert.areEqual(2, result.get(QUOTE_ID).size());
+    Assert.areEqual(ENTRY_ONE_ID, result.get(QUOTE_ID)[0].PricebookEntryId);
+    Assert.areEqual(2, result.get(QUOTE_ID)[0].Quantity);
+    Assert.areEqual(9, result.get(QUOTE_ID)[0].UnitPrice);
+  }
+
+  /** Verifies persisted Order IDs and item counts become result objects. */
+  @IsTest
+  static void buildResultsTest() {
+    QuoteToOrderResult result = new Fixture()
+      .service()
+      .buildResults(
+        new Set<Id>{ QUOTE_ID },
+        new Map<Id, Id>{ QUOTE_ID => ORDER_ID },
+        new Map<Id, List<OrderItem>>{
+          QUOTE_ID => new List<OrderItem>{ new OrderItem(), new OrderItem() }
+        }
+      )
+      .get(QUOTE_ID);
+
+    Assert.areEqual(ORDER_ID, result.orderId);
+    Assert.areEqual(2, result.orderItemCount);
+  }
+
   /**
    * Verifies every private validation rule rejects already-converted Quotes,
    * missing Accounts, missing Price Books, and missing Quote Lines before DML.
@@ -219,10 +312,20 @@ private class QuoteToOrderServiceTest {
     Id accountId,
     Id pricebookId
   ) {
+    return quoteWithId(QUOTE_ID, status, converted, accountId, pricebookId);
+  }
+
+  private static Quote quoteWithId(
+    Id quoteId,
+    String status,
+    Id converted,
+    Id accountId,
+    Id pricebookId
+  ) {
     return (Quote) JSON.deserialize(
       JSON.serialize(
         new Map<String, Object>{
-          'Id' => QUOTE_ID,
+          'Id' => quoteId,
           'Status' => status,
           'Converted_Order__c' => converted,
           'AccountId' => accountId,

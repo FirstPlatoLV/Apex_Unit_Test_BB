@@ -1,10 +1,10 @@
 /**
- * Static query and DML wrapper used by the legacy service.
+ * Static data-access helper used by the legacy service.
  *
- * Centralizing persistence makes the legacy code more realistic and bulk safe,
- * but static methods still prevent the service from substituting this dependency
- * with a mock. Its behavior is therefore covered through data-heavy integration
- * tests of LegacyQuoteToOrderService.
+ * It centralizes reusable queries and the Quote-update mapping, while the legacy
+ * service performs straightforward Order and Order Item inserts directly. These
+ * static methods still prevent the service from substituting this dependency
+ * with a mock, so the behavior is covered through data-heavy integration tests.
  */
 public inherited sharing class LegacyQuoteToOrderDAO {
   public static Map<Id, Quote> findQuotes(Set<Id> quoteIds) {
@@ -24,14 +24,6 @@ public inherited sharing class LegacyQuoteToOrderDAO {
       WHERE QuoteId IN :quoteIds
       ORDER BY QuoteId, Id
     ];
-  }
-
-  public static void insertOrders(List<Order> orderRecords) {
-    insert orderRecords;
-  }
-
-  public static void insertOrderItems(List<OrderItem> orderItems) {
-    insert orderItems;
   }
 
   public static void markQuotesConverted(Map<Id, Id> orderIdsByQuoteId) {

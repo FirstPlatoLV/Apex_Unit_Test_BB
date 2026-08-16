@@ -25,77 +25,148 @@ public inherited sharing class LegacyQuoteToOrderService implements IQuoteToOrde
     // with a test double inside this method.
     Quote_Conversion_Policy__mdt policy = LegacyQuoteConversionPolicy.getPolicy();
     String acceptedStatus = policy?.Accepted_Quote_Status__c;
-    Set<Id> eligibleQuoteIds = new Set<Id>();
-    for (Id quoteId : quoteIds) {
-      if (quotesById.get(quoteId).Status == acceptedStatus) {
-        eligibleQuoteIds.add(quoteId);
-      }
-    }
+    Set<Id> eligibleQuoteIds = selectEligibleQuoteIds(
+      quotesById,
+      acceptedStatus
+    );
     if (eligibleQuoteIds.isEmpty()) {
       return new Map<Id, QuoteToOrderResult>();
     }
-    Map<Id, List<QuoteLineItem>> linesByQuoteId = new Map<Id, List<QuoteLineItem>>();
-    for (
-      QuoteLineItem quoteLine : LegacyQuoteToOrderDAO.findQuoteLines(
-        eligibleQuoteIds
-      )
-    ) {
-      if (!linesByQuoteId.containsKey(quoteLine.QuoteId)) {
-        linesByQuoteId.put(quoteLine.QuoteId, new List<QuoteLineItem>());
-      }
-      linesByQuoteId.get(quoteLine.QuoteId).add(quoteLine);
-    }
+    Map<Id, List<QuoteLineItem>> linesByQuoteId = groupQuoteLines(
+      LegacyQuoteToOrderDAO.findQuoteLines(eligibleQuoteIds)
+    );
     // Stable ordering is required because inserted Orders are matched back to
     // Quotes by list index after Salesforce assigns the Order IDs.
     List<Id> orderedQuoteIds = new List<Id>(eligibleQuoteIds);
     orderedQuoteIds.sort();
+    Map<Id, Order> ordersByQuoteId = buildOrders(
+      eligibleQuoteIds,
+      quotesById,
+      linesByQuoteId,
+      Date.today()
+    );
     List<Order> orders = new List<Order>();
-    for (Id currentQuoteId : orderedQuoteIds) {
-      Quote quoteRecord = quotesById.get(currentQuoteId);
-      validate(quoteRecord, linesByQuoteId.get(currentQuoteId));
-      orders.add(
+    for (Id quoteId : orderedQuoteIds) {
+      orders.add(ordersByQuoteId.get(quoteId));
+    }
+    // The legacy implementation performs straightforward DML directly. There
+    // is no useful abstraction in a static helper that only forwards an insert.
+    insert orders;
+
+    Map<Id, Id> orderIdsByQuoteId = new Map<Id, Id>();
+    for (Integer index = 0; index < orderedQuoteIds.size(); index++) {
+      orderIdsByQuoteId.put(orderedQuoteIds[index], orders[index].Id);
+    }
+    Map<Id, List<OrderItem>> itemsByQuoteId = buildOrderItems(
+      eligibleQuoteIds,
+      linesByQuoteId,
+      orderIdsByQuoteId
+    );
+    List<OrderItem> orderItems = new List<OrderItem>();
+    for (Id quoteId : orderedQuoteIds) {
+      orderItems.addAll(itemsByQuoteId.get(quoteId));
+    }
+    insert orderItems;
+    LegacyQuoteToOrderDAO.markQuotesConverted(orderIdsByQuoteId);
+    return buildResults(eligibleQuoteIds, orderIdsByQuoteId, itemsByQuoteId);
+  }
+
+  @TestVisible
+  private static Set<Id> selectEligibleQuoteIds(
+    Map<Id, Quote> quotesById,
+    String acceptedQuoteStatus
+  ) {
+    Set<Id> eligibleQuoteIds = new Set<Id>();
+    for (Id quoteId : quotesById.keySet()) {
+      if (quotesById.get(quoteId).Status == acceptedQuoteStatus) {
+        eligibleQuoteIds.add(quoteId);
+      }
+    }
+    return eligibleQuoteIds;
+  }
+
+  @TestVisible
+  private static Map<Id, List<QuoteLineItem>> groupQuoteLines(
+    List<QuoteLineItem> quoteLines
+  ) {
+    Map<Id, List<QuoteLineItem>> linesByQuoteId = new Map<Id, List<QuoteLineItem>>();
+    for (QuoteLineItem line : quoteLines) {
+      if (!linesByQuoteId.containsKey(line.QuoteId)) {
+        linesByQuoteId.put(line.QuoteId, new List<QuoteLineItem>());
+      }
+      linesByQuoteId.get(line.QuoteId).add(line);
+    }
+    return linesByQuoteId;
+  }
+
+  @TestVisible
+  private static Map<Id, Order> buildOrders(
+    Set<Id> quoteIds,
+    Map<Id, Quote> quotesById,
+    Map<Id, List<QuoteLineItem>> linesByQuoteId,
+    Date effectiveDate
+  ) {
+    Map<Id, Order> ordersByQuoteId = new Map<Id, Order>();
+    for (Id quoteId : quoteIds) {
+      Quote quoteRecord = quotesById.get(quoteId);
+      validate(quoteRecord, linesByQuoteId.get(quoteId));
+      ordersByQuoteId.put(
+        quoteId,
         new Order(
           AccountId = quoteRecord.AccountId,
-          // The system clock is another hardwired dependency in the legacy path.
-          EffectiveDate = Date.today(),
+          EffectiveDate = effectiveDate,
           Pricebook2Id = quoteRecord.Pricebook2Id,
           Status = 'Draft'
         )
       );
     }
-    LegacyQuoteToOrderDAO.insertOrders(orders);
+    return ordersByQuoteId;
+  }
 
-    List<OrderItem> orderItems = new List<OrderItem>();
-    Map<Id, Id> orderIdsByQuoteId = new Map<Id, Id>();
-    for (Integer index = 0; index < orderedQuoteIds.size(); index++) {
-      Id currentQuoteId = orderedQuoteIds[index];
-      orderIdsByQuoteId.put(currentQuoteId, orders[index].Id);
-      for (QuoteLineItem quoteLine : linesByQuoteId.get(currentQuoteId)) {
-        orderItems.add(
+  @TestVisible
+  private static Map<Id, List<OrderItem>> buildOrderItems(
+    Set<Id> quoteIds,
+    Map<Id, List<QuoteLineItem>> linesByQuoteId,
+    Map<Id, Id> orderIdsByQuoteId
+  ) {
+    Map<Id, List<OrderItem>> itemsByQuoteId = new Map<Id, List<OrderItem>>();
+    for (Id quoteId : quoteIds) {
+      List<OrderItem> items = new List<OrderItem>();
+      for (QuoteLineItem line : linesByQuoteId.get(quoteId)) {
+        items.add(
           new OrderItem(
-            OrderId = orders[index].Id,
-            PricebookEntryId = quoteLine.PricebookEntryId,
-            Quantity = quoteLine.Quantity,
-            UnitPrice = quoteLine.UnitPrice
+            OrderId = orderIdsByQuoteId.get(quoteId),
+            PricebookEntryId = line.PricebookEntryId,
+            Quantity = line.Quantity,
+            UnitPrice = line.UnitPrice
           )
         );
       }
+      itemsByQuoteId.put(quoteId, items);
     }
-    LegacyQuoteToOrderDAO.insertOrderItems(orderItems);
-    LegacyQuoteToOrderDAO.markQuotesConverted(orderIdsByQuoteId);
+    return itemsByQuoteId;
+  }
+
+  @TestVisible
+  private static Map<Id, QuoteToOrderResult> buildResults(
+    Set<Id> quoteIds,
+    Map<Id, Id> orderIdsByQuoteId,
+    Map<Id, List<OrderItem>> itemsByQuoteId
+  ) {
     Map<Id, QuoteToOrderResult> results = new Map<Id, QuoteToOrderResult>();
-    for (Id quoteId : orderedQuoteIds) {
+    for (Id quoteId : quoteIds) {
       results.put(
         quoteId,
         new QuoteToOrderResult(
           orderIdsByQuoteId.get(quoteId),
-          linesByQuoteId.get(quoteId).size()
+          itemsByQuoteId.get(quoteId).size()
         )
       );
     }
     return results;
   }
 
+  @TestVisible
   private static void validate(
     Quote quoteRecord,
     List<QuoteLineItem> quoteLines
