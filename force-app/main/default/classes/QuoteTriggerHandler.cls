@@ -44,7 +44,20 @@ public inherited sharing class QuoteTriggerHandler {
     if (!changedQuoteIds.isEmpty()) {
       // Status eligibility belongs to the service/policy. The handler only
       // detects transitions, so both implementations receive the same input.
-      service.convertQuotes(changedQuoteIds);
+      try {
+        service.convertQuotes(changedQuoteIds);
+      } catch (Exception error) {
+        // Convert a service failure into record-level trigger feedback. This
+        // keeps the transaction atomic and identifies only the Quotes included
+        // in the failed conversion attempt.
+        for (Quote quoteRecord : newQuotes) {
+          if (changedQuoteIds.contains(quoteRecord.Id)) {
+            quoteRecord.addError(
+              'Quote conversion failed: ' + error.getMessage()
+            );
+          }
+        }
+      }
     }
   }
 }

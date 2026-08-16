@@ -90,7 +90,7 @@ Apex Stub API mocks cannot cross a managed-package namespace boundary. This veri
 .\scripts\deploy.ps1 unittestorg
 .\scripts\assign-permission-set.ps1 unittestorg
 .\scripts\run-demo-tests.ps1 unittestorg
-.\scripts\benchmark-tests.ps1 unittestorg
+.\scripts\benchmark-refactored.ps1 unittestorg
 ```
 
 Bash equivalents with the same filenames are also provided. Manual commands:
@@ -130,18 +130,18 @@ Before timing, the implementation-specific production classes were verified at 1
 The benchmark excludes `QuoteTriggerTest`, the reusable `DMLExecutorTest`, and shared trigger/result/utility tests that cannot be attributed uniquely to either implementation. The measured suites are:
 
 - Legacy: `LegacyQuoteToOrderServiceTest` and `LegacyQuoteConversionPolicyTest`—2 classes and 12 test methods.
-- Refactored: `QuoteToOrderServiceTest`, `QuoteToOrderDAOTest`, `SystemDateProviderTest`, and `QuoteConversionPolicyTest`—4 classes and 11 test methods.
+- Refactored: `QuoteToOrderServiceTest`, `QuoteToOrderDAOTest`, `SystemDateProviderTest`, and `QuoteConversionPolicyTest`—4 classes and 12 test methods.
 
-Each suite ran once for warm-up followed by five measured runs. Suites alternated sequentially without parallel execution. Salesforce execution time is the platform-reported Apex test duration; wall time additionally includes CLI startup, network latency, queueing, and result processing.
+Each suite ran once for warm-up followed by five measured runs. The runs within each sample were submitted and completed sequentially. The refactored sample was rerun after adding `convertExceptionTest`; the unchanged legacy figures remain from the original measurement. Salesforce execution time is the platform-reported Apex test duration; wall time additionally includes CLI startup, network latency, queueing, and result processing.
 
 | Suite      | Salesforce median | Salesforce range | Wall median |      Wall range |
 | ---------- | ----------------: | ---------------: | ----------: | --------------: |
 | Legacy     |          7,646 ms |   5,006–9,294 ms |   12,553 ms | 8,523–16,572 ms |
-| Refactored |            291 ms |       260–484 ms |    4,477 ms |  3,472–8,530 ms |
+| Refactored |            308 ms |       191–463 ms |    3,456 ms |  3,440–5,476 ms |
 
-In these measurements, the refactored suite used 96.2% less Salesforce execution time and had a 26.3× lower median. Its median wall time was 64.3% lower. Results vary with org load and automation and do not promise a universal speedup ratio.
+In these measurements, the refactored suite used 96.0% less Salesforce execution time and had a 24.8× lower median. Its median wall time was 72.5% lower. Results vary with org load and automation; the measured advantage demonstrates the feedback-speed benefit of isolated tests rather than promising an identical ratio in every org.
 
-The saved [benchmark summary](benchmark-results/implementation-20260816-200347/summary.md), [CSV measurements](benchmark-results/implementation-20260816-200347/summary.csv), and [raw CLI JSON](benchmark-results/implementation-20260816-200347/raw/) preserve the underlying results.
+The original [implementation benchmark](benchmark-results/implementation-20260816-200347/summary.md) preserves the legacy sample. The updated [refactored summary](benchmark-results/refactored-20260816-211041/summary.md), [CSV measurements](benchmark-results/refactored-20260816-211041/summary.csv), and [raw CLI JSON](benchmark-results/refactored-20260816-211041/raw/) preserve the new 12-method sample.
 
 ### DML executor infrastructure timing
 

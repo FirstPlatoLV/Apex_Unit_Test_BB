@@ -16,6 +16,9 @@ private class QuoteTriggerHandlerTest {
   );
   private static final Id ORDER_ID = TestUtility.getFakeId(Order.SObjectType);
 
+  private class ConversionFailureException extends Exception {
+  }
+
   private class Fixture {
     Mock serviceMock = Mock.forType(IQuoteToOrderService.class);
     IQuoteToOrderService service = (IQuoteToOrderService) serviceMock.stub;
@@ -88,5 +91,38 @@ private class QuoteTriggerHandlerTest {
     Expect.that(convert)
       .hasBeenCalledWith(Argument.jsonEquals(new Set<Id>{ CHANGED_QUOTE_ID }));
     Expect.that(convert).hasBeenCalledTimes(1);
+  }
+
+  /**
+   * Verifies a mocked service exception becomes a record-level trigger error on
+   * the attempted Quote while unrelated Quotes remain error-free. Mocking makes
+   * this difficult production failure deterministic without real dependencies.
+   */
+  @IsTest
+  static void afterUpdateExceptionTest() {
+    Fixture f = new Fixture();
+    MethodSpy convert = f.serviceMock.spyOn('convertQuotes');
+    convert.throwsException(new ConversionFailureException('DAO unavailable'));
+    Quote changedQuote = new Quote(Id = CHANGED_QUOTE_ID, Status = 'Accepted');
+    Quote unchangedQuote = new Quote(Id = UNCHANGED_QUOTE_ID, Status = 'Draft');
+    List<Quote> newQuotes = new List<Quote>{ changedQuote, unchangedQuote };
+    Map<Id, Quote> oldQuotesById = new Map<Id, Quote>{
+      CHANGED_QUOTE_ID => new Quote(Id = CHANGED_QUOTE_ID, Status = 'Draft'),
+      UNCHANGED_QUOTE_ID => new Quote(Id = UNCHANGED_QUOTE_ID, Status = 'Draft')
+    };
+
+    f.handler()
+      .handle(System.TriggerOperation.AFTER_UPDATE, newQuotes, oldQuotesById);
+
+    Expect.that(convert)
+      .hasBeenCalledWith(Argument.jsonEquals(new Set<Id>{ CHANGED_QUOTE_ID }));
+    Expect.that(convert).hasBeenCalledTimes(1);
+    Assert.isTrue(changedQuote.hasErrors());
+    Assert.areEqual(1, changedQuote.getErrors().size());
+    Assert.areEqual(
+      'Quote conversion failed: DAO unavailable',
+      changedQuote.getErrors()[0].getMessage()
+    );
+    Assert.isFalse(unchangedQuote.hasErrors());
   }
 }
