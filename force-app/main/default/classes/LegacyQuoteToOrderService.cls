@@ -1,11 +1,7 @@
 public inherited sharing class LegacyQuoteToOrderService {
-  public static Id convert(Id quoteId) {
-    return convert(new Set<Id>{ quoteId }).get(quoteId);
-  }
-
-  public static Map<Id, Id> convert(Set<Id> quoteIds) {
+  public static Map<Id, QuoteToOrderResult> convert(Set<Id> quoteIds) {
     if (quoteIds == null || quoteIds.isEmpty()) {
-      return new Map<Id, Id>();
+      return new Map<Id, QuoteToOrderResult>();
     }
     Map<Id, Quote> quotesById = LegacyQuoteToOrderDAO.findQuotes(quoteIds);
     if (quotesById.size() != quoteIds.size()) {
@@ -19,7 +15,7 @@ public inherited sharing class LegacyQuoteToOrderService {
       }
     }
     if (eligibleQuoteIds.isEmpty()) {
-      return new Map<Id, Id>();
+      return new Map<Id, QuoteToOrderResult>();
     }
     Map<Id, List<QuoteLineItem>> linesByQuoteId = new Map<Id, List<QuoteLineItem>>();
     for (
@@ -67,7 +63,17 @@ public inherited sharing class LegacyQuoteToOrderService {
     }
     LegacyQuoteToOrderDAO.insertOrderItems(orderItems);
     LegacyQuoteToOrderDAO.markQuotesConverted(orderIdsByQuoteId);
-    return orderIdsByQuoteId;
+    Map<Id, QuoteToOrderResult> results = new Map<Id, QuoteToOrderResult>();
+    for (Id quoteId : orderedQuoteIds) {
+      results.put(
+        quoteId,
+        new QuoteToOrderResult(
+          orderIdsByQuoteId.get(quoteId),
+          linesByQuoteId.get(quoteId).size()
+        )
+      );
+    }
+    return results;
   }
 
   private static void validate(

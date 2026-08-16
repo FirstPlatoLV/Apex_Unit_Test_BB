@@ -75,7 +75,9 @@ private class QuoteToOrderServiceTest {
     save.whenCalledWith(Argument.any(), Argument.any())
       .thenReturn(new Map<Id, Id>{ QUOTE_ID => ORDER_ID });
     MethodSpy mark = f.daoMock.spyOn('markQuotesConverted');
-    QuoteToOrderResult result = f.service().convert(QUOTE_ID);
+    QuoteToOrderResult result = f.service()
+      .convert(new Set<Id>{ QUOTE_ID })
+      .get(QUOTE_ID);
     Assert.areEqual(ORDER_ID, result.orderId);
     Assert.areEqual(2, result.orderItemCount);
     Expect.that(save).hasBeenCalledTimes(1);
@@ -93,7 +95,9 @@ private class QuoteToOrderServiceTest {
       twoLines()
     );
     MethodSpy skippedSave = skipped.daoMock.spyOn('saveOrders');
-    Assert.isNull(skipped.service().convert(QUOTE_ID));
+    Assert.isFalse(
+      skipped.service().convert(new Set<Id>{ QUOTE_ID }).containsKey(QUOTE_ID)
+    );
     Expect.that(skippedSave).hasBeenCalledTimes(0);
 
     Fixture failed = configured(
@@ -107,7 +111,7 @@ private class QuoteToOrderServiceTest {
     );
     MethodSpy failedMark = failed.daoMock.spyOn('markQuotesConverted');
     try {
-      failed.service().convert(QUOTE_ID);
+      failed.service().convert(new Set<Id>{ QUOTE_ID });
       Assert.fail('Expected DAO failure');
     } catch (DAOFailureException e) {
       Assert.areEqual('Order persistence failed', e.getMessage());
@@ -160,7 +164,7 @@ private class QuoteToOrderServiceTest {
   private static void assertRejected(Fixture f, String message) {
     MethodSpy save = f.daoMock.spyOn('saveOrders');
     try {
-      f.service().convert(QUOTE_ID);
+      f.service().convert(new Set<Id>{ QUOTE_ID });
       Assert.fail('Expected rejection');
     } catch (QuoteToOrderException e) {
       Assert.areEqual(message, e.getMessage());

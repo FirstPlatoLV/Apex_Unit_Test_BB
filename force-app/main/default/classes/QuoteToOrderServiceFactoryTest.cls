@@ -7,7 +7,8 @@ private class QuoteToOrderServiceFactoryTest {
     );
 
     QuoteToOrderResult result = QuoteToOrderServiceFactory.createDefault()
-      .convert(graph.quoteRecord.Id);
+      .convert(new Set<Id>{ graph.quoteRecord.Id })
+      .get(graph.quoteRecord.Id);
 
     Assert.isNotNull(result.orderId);
     Assert.areEqual(1, result.orderItemCount);

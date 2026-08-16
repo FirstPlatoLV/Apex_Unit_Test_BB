@@ -13,10 +13,6 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
     this.policy = policy;
   }
 
-  public QuoteToOrderResult convert(Id quoteId) {
-    return convert(new Set<Id>{ quoteId }).get(quoteId);
-  }
-
   public Map<Id, QuoteToOrderResult> convert(Set<Id> quoteIds) {
     if (quoteIds == null || quoteIds.isEmpty()) {
       return new Map<Id, QuoteToOrderResult>();

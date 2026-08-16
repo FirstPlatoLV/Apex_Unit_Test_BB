@@ -59,8 +59,12 @@ private class LegacyQuoteToOrderServiceTest {
     };
 
     Test.startTest();
-    Id orderId = LegacyQuoteToOrderService.convert(quoteRecord.Id);
+    QuoteToOrderResult result = LegacyQuoteToOrderService.convert(
+        new Set<Id>{ quoteRecord.Id }
+      )
+      .get(quoteRecord.Id);
     Test.stopTest();
+    Id orderId = result.orderId;
 
     Order savedOrder = [
       SELECT AccountId, EffectiveDate, Pricebook2Id, Status
@@ -89,6 +93,7 @@ private class LegacyQuoteToOrderServiceTest {
     Assert.areEqual(entries[1].Id, savedItems[1].PricebookEntryId);
     Assert.areEqual(Decimal.valueOf(3), savedItems[1].Quantity);
     Assert.areEqual(Decimal.valueOf(24), savedItems[1].UnitPrice);
+    Assert.areEqual(2, result.orderItemCount);
     Assert.areEqual(orderId, savedQuote.Converted_Order__c);
   }
 
@@ -110,7 +115,10 @@ private class LegacyQuoteToOrderServiceTest {
     );
     insert quoteRecord;
 
-    Assert.isNull(LegacyQuoteToOrderService.convert(quoteRecord.Id));
+    Assert.isFalse(
+      LegacyQuoteToOrderService.convert(new Set<Id>{ quoteRecord.Id })
+        .containsKey(quoteRecord.Id)
+    );
     Assert.areEqual(
       0,
       [SELECT COUNT() FROM Order WHERE AccountId = :accountRecord.Id]
@@ -131,11 +139,16 @@ private class LegacyQuoteToOrderServiceTest {
     };
 
     Test.startTest();
-    Map<Id, Id> orderIdsByQuoteId = LegacyQuoteToOrderService.convert(quoteIds);
+    Map<Id, QuoteToOrderResult> resultsByQuoteId = LegacyQuoteToOrderService.convert(
+      quoteIds
+    );
     Test.stopTest();
 
-    Assert.areEqual(2, orderIdsByQuoteId.size());
-    Set<Id> orderIds = new Set<Id>(orderIdsByQuoteId.values());
+    Assert.areEqual(2, resultsByQuoteId.size());
+    Set<Id> orderIds = new Set<Id>{
+      resultsByQuoteId.get(first.quoteRecord.Id).orderId,
+      resultsByQuoteId.get(second.quoteRecord.Id).orderId
+    };
     Assert.areEqual(2, [SELECT COUNT() FROM Order WHERE Id IN :orderIds]);
     Assert.areEqual(
       3,
@@ -147,7 +160,7 @@ private class LegacyQuoteToOrderServiceTest {
       WHERE Id IN :quoteIds
     ]) {
       Assert.areEqual(
-        orderIdsByQuoteId.get(convertedQuote.Id),
+        resultsByQuoteId.get(convertedQuote.Id).orderId,
         convertedQuote.Converted_Order__c
       );
     }

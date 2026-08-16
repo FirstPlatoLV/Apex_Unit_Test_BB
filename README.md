@@ -4,7 +4,7 @@ This Salesforce DX project contrasts a tightly coupled Quote-to-Order implementa
 
 ## Architecture
 
-`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete methods on `LegacyQuoteToOrderDAO` and the static `LegacyQuoteConversionPolicy`. The refactored path mirrors that shape with injectable `IQuoteToOrderDAO`, `IDateProvider`, and `IQuoteConversionPolicy` dependencies, while `QuoteToOrderService` implements `IQuoteToOrderService` for trigger injection. `QuoteConversionPolicy` is a thin instance adapter that delegates to `LegacyQuoteConversionPolicy`, allowing service tests to mock the accepted status while the existing static implementation remains the production source of truth. Both services expose bulk conversion and silently skip Quotes that are not in the configured status. `QuoteTrigger` delegates every context to `QuoteTriggerHandler`; the handler forwards status transitions to its injected service, and the service applies conversion policy. The new service owns rules and mapping, its DAO owns persistence orchestration, and an injected `IDMLExecutor` isolates the actual `Database` calls. `QuoteToOrderServiceFactory` composes production dependencies, and `QuoteToOrder` preserves a static caller API.
+`LegacyQuoteToOrderService` contains mapping, the system clock, and static entry points, and calls concrete methods on `LegacyQuoteToOrderDAO` and the static `LegacyQuoteConversionPolicy`. The refactored path mirrors that shape with injectable `IQuoteToOrderDAO`, `IDateProvider`, and `IQuoteConversionPolicy` dependencies, while `QuoteToOrderService` implements `IQuoteToOrderService` for trigger injection. Both services expose the same bulk-only `Map<Id, QuoteToOrderResult> convert(Set<Id>)` contract and silently skip Quotes that are not in the configured status. `QuoteConversionPolicy` is a thin instance adapter that delegates to `LegacyQuoteConversionPolicy`, allowing service tests to mock the accepted status while the existing static implementation remains the production source of truth. `QuoteTrigger` delegates every context to `QuoteTriggerHandler`; the handler forwards status transitions to its injected service, and the service applies conversion policy. The new service owns rules and mapping, its DAO owns persistence orchestration, and an injected `IDMLExecutor` isolates the actual `Database` calls. `QuoteToOrderServiceFactory` composes the production dependencies.
 
 All production classes use `inherited sharing`: callers determine record-sharing behavior, while the permission set grants explicit CRUD/FLS for manual demonstration. This sample is intentionally not a production-grade security framework.
 
@@ -41,7 +41,7 @@ Apex Stub API mocks cannot cross a managed-package namespace boundary. This veri
 Bash equivalents with the same filenames are also provided. Manual commands:
 
 ```text
-sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests LegacyQuoteConversionPolicyTest --tests QuoteConversionPolicyTest --tests QuoteTriggerHandlerTest --tests QuoteTriggerTest --tests QuoteToOrderServiceFactoryTest --tests QuoteToOrderExceptionTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests TestUtilityTest --tests QuoteToOrderTest --wait 30
+sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests LegacyQuoteConversionPolicyTest --tests QuoteConversionPolicyTest --tests QuoteTriggerHandlerTest --tests QuoteTriggerTest --tests QuoteToOrderServiceFactoryTest --tests QuoteToOrderExceptionTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests TestUtilityTest --wait 30
 sf org assign permset --name Quote_Conversion --target-org unittestorg
 sf apex run test --target-org unittestorg --tests LegacyQuoteToOrderServiceTest --synchronous --result-format json
 sf apex run test --target-org unittestorg --tests QuoteToOrderServiceTest --synchronous --result-format json
@@ -57,7 +57,6 @@ Refactored-path tests use a method-oriented convention: each production method, 
 - `QuoteToOrderDAO` / `QuoteToOrderDAOTest`: combined, bulk persistence behavior with mapping tested independently through a mocked `IDMLExecutor`.
 - `DMLExecutor`: a reusable, object-agnostic wrapper around bulk insert, upsert, update, delete, and undelete `Database` calls, including `allOrNone`, external-ID, and access-level parameters.
 - `QuoteToOrderServiceFactory`: production composition root.
-- `QuoteToOrder` / `QuoteToOrderTest`: static compatibility API and integration path.
 - `LegacyQuoteConversionPolicy`: static access to the `Default` Custom Metadata configuration, used directly by the legacy service.
 - `QuoteConversionPolicy`: injectable adapter that delegates to `LegacyQuoteConversionPolicy` through `IQuoteConversionPolicy`.
 - `QuoteTriggerHandler` / `QuoteTriggerHandlerTest`: context routing and transition filtering tested with a mocked `IQuoteToOrderService`.
@@ -67,7 +66,7 @@ The benchmark runs each suite once for warm-up and five measured times, sequenti
 
 ## Live presentation
 
-Follow [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md): legacy service/test, baseline timing, interfaces/injected constructor, factory/façade, mock happy path, mock failure path, timing comparison, then retained integration tests.
+Follow [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md): legacy service/test, baseline timing, interfaces/injected constructor, factory composition, mock happy path, mock failure path, timing comparison, then retained integration tests.
 
 ## Limitations and cleanup
 

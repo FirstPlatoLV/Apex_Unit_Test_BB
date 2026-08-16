@@ -188,7 +188,7 @@ LegacyQuoteToOrderService
 Required public API:
 
 ```apex
-public static Id convert(Id quoteId)
+public static Map<Id, QuoteToOrderResult> convert(Set<Id> quoteIds)
 ```
 
 The class must intentionally demonstrate common coupling problems:
@@ -300,7 +300,7 @@ Requirements:
 Recommended API:
 
 ```apex
-public QuoteToOrderResult convert(Id quoteId)
+public Map<Id, QuoteToOrderResult> convert(Set<Id> quoteIds)
 ```
 
 ### 8.4 Result type
@@ -335,24 +335,6 @@ public static QuoteToOrderService createDefault()
 This method constructs the real repositories and date provider, then injects them into the service.
 
 The service must not call this factory internally.
-
-### 8.6 Legacy-compatible façade
-
-Create:
-
-```apex
-QuoteToOrder
-```
-
-Recommended API:
-
-```apex
-public static Map<Id, QuoteToOrderResult> convert(Set<Id> quoteIds)
-```
-
-The façade delegates to `QuoteToOrderServiceFactory.createDefault()` and returns results keyed by eligible Quote ID.
-
-This demonstrates how existing static callers can coexist with the new instance-based design.
 
 ## 9. Apex Mockery integration
 
@@ -425,7 +407,7 @@ Create focused tests for:
 - `SalesforceQuoteRepository` query and conversion-marker update;
 - `SalesforceQuoteLineRepository` query behavior;
 - `SalesforceOrderRepository` insertion of one Order and its Order Items;
-- one façade-level happy-path integration test using `QuoteToOrder.convert`.
+- one factory-composition happy-path integration test using `QuoteToOrderServiceFactory.createDefault()`.
 
 These tests may share a compact data factory. The factory must remain in test code and must not obscure which Salesforce records are required.
 
@@ -546,12 +528,12 @@ The implementation is complete when:
 1. A clean clone can be deployed using documented `sf` commands.
 2. Preflight clearly reports missing org prerequisites, including a disabled Quotes or Orders feature.
 3. The setup guide enables Salesforce standard Quote/QuoteLineItem rather than defining substitute custom objects.
-4. All naïve, unit, repository, and façade tests pass in the target developer org.
+4. All naïve, unit, repository, and composition tests pass in the target developer org.
 5. Mock-based service tests execute without SOQL or DML.
 6. The primary naïve test visibly creates the complete Salesforce data graph.
 7. The refactored service contains no SOQL, DML, `Date.today()`, or `Test.isRunningTest()`.
 8. Production assembly occurs outside the service.
-9. The static façade demonstrates coexistence with legacy callers.
+9. The trigger handler demonstrates interface-based isolation from the conversion service.
 10. At least one failure scenario is produced entirely through Mockery configuration.
 11. Benchmark raw data and a median/range summary are generated.
 12. No claimed timing result is hard-coded into code, documentation, or slides.

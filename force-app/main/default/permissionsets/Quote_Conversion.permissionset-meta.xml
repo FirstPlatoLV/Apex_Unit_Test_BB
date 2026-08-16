@@ -8,8 +8,6 @@
     >true</enabled></classAccesses>
     <classAccesses><apexClass>DMLExecutor</apexClass><enabled
     >true</enabled></classAccesses>
-    <classAccesses><apexClass>QuoteToOrder</apexClass><enabled
-    >true</enabled></classAccesses>
     <classAccesses><apexClass>QuoteToOrderDAO</apexClass><enabled
     >true</enabled></classAccesses>
     <classAccesses><apexClass>QuoteToOrderService</apexClass><enabled
