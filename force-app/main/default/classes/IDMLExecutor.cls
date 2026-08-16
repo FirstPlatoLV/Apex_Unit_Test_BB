@@ -1,3 +1,10 @@
+/**
+ * Generic one-to-one abstraction over supported Database DML operations.
+ *
+ * It is intentionally object- and service-agnostic. Any DAO can inject this
+ * contract to verify records, parameters, ordering, and failure handling without
+ * executing DML in its own unit tests.
+ */
 public interface IDMLExecutor {
   Database.SaveResult[] insertRecords(List<SObject> records, Boolean allOrNone);
   Database.SaveResult[] insertRecords(

@@ -1,4 +1,9 @@
 @IsTest
+/**
+ * Builds the real Salesforce graph required by integration and E2E tests.
+ * Mock-based service tests intentionally avoid this factory; that contrast is
+ * the source of the test-runtime lesson demonstrated by the repository.
+ */
 public class QuoteToOrderTestDataFactory {
   public class Graph {
     public Account account;

@@ -1,4 +1,9 @@
 @IsTest
+/**
+ * One-time integration coverage for the generic Database wrapper.
+ * These tests perform real DML for every supported operation and overload family;
+ * their cost is infrastructure cost, not repeated service-unit-test cost.
+ */
 private class DMLExecutorTest {
   @IsTest
   static void insertRecordsTest() {

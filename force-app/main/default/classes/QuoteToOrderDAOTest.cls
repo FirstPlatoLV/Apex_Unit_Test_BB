@@ -1,4 +1,10 @@
 @IsTest
+/**
+ * Focused tests for data-access behavior.
+ * Query tests only verify that the expected SOQL boundary is crossed; E2E tests
+ * prove the queries return the fields needed for conversion. Write tests mock
+ * IDMLExecutor to inspect mapping and call parameters without database writes.
+ */
 private class QuoteToOrderDAOTest {
   private static final Id QUOTE_ONE_ID = TestUtility.getFakeId(
     Quote.SObjectType
@@ -55,6 +61,8 @@ private class QuoteToOrderDAOTest {
     QuoteToOrderDAO dao = new QuoteToOrderDAO();
 
     Test.startTest();
+    // Governor usage proves the real query executed without constructing a full
+    // graph merely to assert that Salesforce returns records just inserted.
     Integer queriesBefore = Limits.getQueries();
     Map<Id, Quote> quotesById = dao.findQuotes(new Set<Id>{ QUOTE_ONE_ID });
     Integer queriesAfter = Limits.getQueries();
@@ -69,6 +77,8 @@ private class QuoteToOrderDAOTest {
     QuoteToOrderDAO dao = new QuoteToOrderDAO();
 
     Test.startTest();
+    // The E2E suite owns field-level query compatibility; this unit test keeps
+    // the DAO boundary visible while remaining inexpensive.
     Integer queriesBefore = Limits.getQueries();
     List<QuoteLineItem> quoteLines = dao.findQuoteLines(
       new Set<Id>{ QUOTE_ONE_ID }

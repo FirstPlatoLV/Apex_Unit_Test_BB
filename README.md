@@ -62,6 +62,12 @@ Refactored-path tests use a method-oriented convention: each production method, 
 - `QuoteTrigger` / `QuoteTriggerTest`: positive and negative end-to-end conversion tests using the real metadata-controlled implementation selection.
 - `QuoteTriggerHandler` / `QuoteTriggerHandlerTest`: context routing and transition filtering tested with one mocked service abstraction.
 
+### E2E tests as a migration safety net
+
+Keep the existing E2E tests while transitioning from the legacy implementation, even when the suite contains many slow scenarios. Those tests capture established business behavior across triggers, configuration, queries, mapping, and persistence. Running the same assertions against both metadata-selected implementations provides strong evidence that the refactor preserves behavior instead of merely achieving line coverage.
+
+The target test pyramid can be adopted gradually. Once behavioral parity is established and every business rule, validation branch, mapping decision, and failure path is covered by fast isolated tests, redundant E2E scenarios can be removed. A small set of critical positive and negative journeys should remain permanently to verify that production composition and Salesforce integration still work together. This approach avoids deleting the old safety net before the new test seams have earned equivalent confidence.
+
 ## Benchmark results
 
 Before timing, the implementation-specific production classes were verified at 100% line coverage on both paths. Every production method is exercised. The legacy DAO is covered through the data-heavy service tests because its static coupling provides no useful isolated test seam. The refactored DAO verifies query execution through governor limits and verifies persistence mapping through a mocked `IDMLExecutor`.

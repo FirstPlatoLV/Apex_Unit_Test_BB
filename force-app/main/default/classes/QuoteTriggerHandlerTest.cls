@@ -1,4 +1,9 @@
 @IsTest
+/**
+ * Isolates trigger-context filtering from conversion behavior.
+ * A mocked service proves which Quote IDs would be delegated without invoking
+ * either implementation or performing DML.
+ */
 private class QuoteTriggerHandlerTest {
   private static final Id CHANGED_QUOTE_ID = TestUtility.getFakeId(
     Quote.SObjectType

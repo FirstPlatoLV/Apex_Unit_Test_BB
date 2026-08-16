@@ -1,4 +1,15 @@
 @IsTest
+/**
+ * Unmocked positive and negative E2E tests for the complete trigger path.
+ * They read the org's actual metadata flag, so the same assertions validate the
+ * legacy or refactored implementation after an administrator changes the flag.
+ *
+ * During migration, keep the existing E2E suite even when it is large or slow:
+ * it is the behavioral safety net proving the refactored implementation still
+ * satisfies established business journeys. After parity is demonstrated and
+ * each rule is covered by isolated unit tests, redundant E2E scenarios can be
+ * reduced. Retain a small set of critical journeys to verify production wiring.
+ */
 private class QuoteTriggerTest {
   @IsTest
   static void quoteTriggerTest() {

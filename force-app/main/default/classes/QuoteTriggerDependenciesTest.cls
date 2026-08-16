@@ -1,4 +1,9 @@
 @IsTest
+/**
+ * Verifies the production composition root.
+ * These tests ensure both interface branches and the fully wired refactored graph
+ * can be constructed; they complement isolated service tests.
+ */
 private class QuoteTriggerDependenciesTest {
   @IsTest
   static void getPolicyTest() {

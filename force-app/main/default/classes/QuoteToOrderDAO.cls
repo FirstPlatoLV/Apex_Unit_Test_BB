@@ -1,7 +1,16 @@
+/**
+ * Combined data-access implementation for Quote conversion.
+ *
+ * Queries remain real SOQL, while all writes pass through IDMLExecutor. This
+ * creates a useful second test seam: DAO mapping and DML orchestration can be
+ * verified without committing records, and the generic Database wrapper is
+ * tested once as shared infrastructure.
+ */
 public inherited sharing class QuoteToOrderDAO implements IQuoteToOrderDAO {
   private final IDMLExecutor dml;
 
   public QuoteToOrderDAO() {
+    // Convenience constructor used by production composition.
     this(new DMLExecutor());
   }
 
@@ -32,6 +41,7 @@ public inherited sharing class QuoteToOrderDAO implements IQuoteToOrderDAO {
     Map<Id, Order> ordersByQuoteId,
     Map<Id, List<OrderItem>> itemsByQuoteId
   ) {
+    // Sort keys so SaveResult positions map deterministically back to Quote IDs.
     List<Id> quoteIds = new List<Id>(ordersByQuoteId.keySet());
     quoteIds.sort();
     List<Order> orders = new List<Order>();
@@ -40,6 +50,8 @@ public inherited sharing class QuoteToOrderDAO implements IQuoteToOrderDAO {
     }
     List<SObject> orderRecords = new List<SObject>();
     orderRecords.addAll(orders);
+    // The injected executor can be mocked; tests provide successful SaveResults
+    // without performing Order or OrderItem DML.
     Database.SaveResult[] orderResults = dml.insertRecords(orderRecords, true);
     Map<Id, Id> orderIdsByQuoteId = new Map<Id, Id>();
     List<OrderItem> allItems = new List<OrderItem>();

@@ -1,3 +1,10 @@
+/**
+ * Thin production implementation of IDMLExecutor.
+ *
+ * Methods deliberately contain no business logic: every call maps directly to
+ * its Database counterpart. This reusable infrastructure is tested once and its
+ * runtime is excluded from per-service benchmarks.
+ */
 public inherited sharing class DMLExecutor implements IDMLExecutor {
   public Database.SaveResult[] insertRecords(
     List<SObject> records,

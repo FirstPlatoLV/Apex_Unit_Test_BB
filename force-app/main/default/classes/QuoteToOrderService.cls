@@ -1,3 +1,11 @@
+/**
+ * Dependency-injected Quote-to-Order business service.
+ *
+ * Its conversion rules intentionally mirror LegacyQuoteToOrderService. The
+ * difference is architectural: persistence, time, and policy access arrive
+ * through interfaces. Unit tests can therefore exercise every branch with
+ * in-memory records and mocks instead of constructing a Salesforce data graph.
+ */
 public inherited sharing class QuoteToOrderService implements IQuoteToOrderService {
   private final IQuoteToOrderDAO dao;
   private final IDateProvider dateProvider;
@@ -8,6 +16,8 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
     IDateProvider dateProvider,
     IQuoteConversionPolicy policy
   ) {
+    // Constructor injection makes every external dependency explicit and
+    // prevents production implementations from being created inside the logic.
     this.dao = dao;
     this.dateProvider = dateProvider;
     this.policy = policy;
@@ -25,6 +35,8 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
     if (quotesById.size() != quoteIds.size()) {
       throw new QuoteToOrderException('Quote does not exist');
     }
+    // The policy is replaceable, so tests do not depend on deployable Custom
+    // Metadata records or on the org's current configuration.
     Quote_Conversion_Policy__mdt conversionPolicy = policy.getPolicy();
     String acceptedQuoteStatus = conversionPolicy?.Accepted_Quote_Status__c;
     Set<Id> eligibleQuoteIds = new Set<Id>();
@@ -43,6 +55,7 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
       }
       linesByQuoteId.get(line.QuoteId).add(line);
     }
+    // A replaceable clock makes the mapped EffectiveDate deterministic.
     Date effectiveDate = dateProvider.today();
     Map<Id, Order> ordersByQuoteId = new Map<Id, Order>();
     Map<Id, List<OrderItem>> itemsByQuoteId = new Map<Id, List<OrderItem>>();
@@ -71,6 +84,7 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
       }
       itemsByQuoteId.put(quoteId, items);
     }
+    // The service prepares the desired records; the DAO coordinates persistence.
     Map<Id, Id> orderIdsByQuoteId = dao.saveOrders(
       ordersByQuoteId,
       itemsByQuoteId

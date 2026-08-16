@@ -1,4 +1,9 @@
 @IsTest
+/**
+ * Fast business-logic tests for the dependency-injected service.
+ * DAO, clock, and policy mocks keep these tests deterministic and free of
+ * SOQL/DML while still covering every service method and validation branch.
+ */
 private class QuoteToOrderServiceTest {
   private static final Id QUOTE_ID = TestUtility.getFakeId(Quote.SObjectType);
   private static final Id ACCOUNT_ID = TestUtility.getFakeId(

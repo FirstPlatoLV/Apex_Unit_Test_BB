@@ -1,4 +1,10 @@
 @IsTest
+/**
+ * Data-heavy tests required by the legacy architecture.
+ * Static dependencies cannot be substituted, so every business scenario crosses
+ * real SOQL and DML boundaries. This gives confidence but increases runtime and
+ * makes failures less isolated.
+ */
 private class LegacyQuoteToOrderServiceTest {
   @IsTest
   static void convertQuotesTest() {
