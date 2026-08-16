@@ -1,5 +1,5 @@
 public inherited sharing class QuoteConversionPolicy implements IQuoteConversionPolicy {
-  public String acceptedQuoteStatus() {
-    return LegacyQuoteConversionPolicy.acceptedQuoteStatus();
+  public Quote_Conversion_Policy__mdt getPolicy() {
+    return LegacyQuoteConversionPolicy.getPolicy();
   }
 }

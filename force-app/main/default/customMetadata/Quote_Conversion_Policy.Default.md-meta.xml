@@ -10,4 +10,12 @@
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     >Accepted</value>
     </values>
+    <values>
+        <field>Use_Legacy_Implementation__c</field>
+        <value
+      xsi:type="xsd:boolean"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    >false</value>
+    </values>
 </CustomMetadata>

@@ -21,7 +21,8 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
     if (quotesById.size() != quoteIds.size()) {
       throw new QuoteToOrderException('Quote does not exist');
     }
-    String acceptedQuoteStatus = policy.acceptedQuoteStatus();
+    Quote_Conversion_Policy__mdt conversionPolicy = policy.getPolicy();
+    String acceptedQuoteStatus = conversionPolicy?.Accepted_Quote_Status__c;
     Set<Id> eligibleQuoteIds = new Set<Id>();
     for (Id quoteId : quoteIds) {
       if (quotesById.get(quoteId).Status == acceptedQuoteStatus) {

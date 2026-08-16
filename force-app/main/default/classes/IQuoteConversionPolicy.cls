@@ -1,3 +1,3 @@
 public interface IQuoteConversionPolicy {
-  String acceptedQuoteStatus();
+  Quote_Conversion_Policy__mdt getPolicy();
 }

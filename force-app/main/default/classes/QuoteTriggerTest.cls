@@ -9,7 +9,8 @@ private class QuoteTriggerTest {
     update graph.quoteRecord;
 
     Test.startTest();
-    graph.quoteRecord.Status = LegacyQuoteConversionPolicy.acceptedQuoteStatus();
+    graph.quoteRecord.Status = LegacyQuoteConversionPolicy.getPolicy()
+      .Accepted_Quote_Status__c;
     update graph.quoteRecord;
     Test.stopTest();
 

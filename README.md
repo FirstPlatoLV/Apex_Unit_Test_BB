@@ -25,7 +25,7 @@ If Quote/QuoteLineItem is absent, enable Quotes; if Order/OrderItem is absent, e
 ./scripts/preflight.sh unittestorg
 ```
 
-The default Custom Metadata record accepts Quote status `Accepted`. Change `force-app/main/default/customMetadata/Quote_Conversion_Policy.Default.md-meta.xml` if preflight reports a different active business status.
+The default Custom Metadata record accepts Quote status `Accepted` and sets `Use_Legacy_Implementation__c` to `false`. The policy API returns the complete record so callers can retrieve both values with one lookup. Change `force-app/main/default/customMetadata/Quote_Conversion_Policy.Default.md-meta.xml` if preflight reports a different active business status.
 
 Apex Stub API mocks cannot cross a managed-package namespace boundary. This verified org and Apex Mockery install are both unnamespaced, so the limitation does not apply; revisit the packaging strategy in a namespaced org.
 
@@ -57,8 +57,8 @@ Refactored-path tests use a method-oriented convention: each production method, 
 - `QuoteToOrderDAO` / `QuoteToOrderDAOTest`: combined, bulk persistence behavior with mapping tested independently through a mocked `IDMLExecutor`.
 - `DMLExecutor`: a reusable, object-agnostic wrapper around bulk insert, upsert, update, delete, and undelete `Database` calls, including `allOrNone`, external-ID, and access-level parameters.
 - `QuoteToOrderServiceFactory`: production composition root.
-- `LegacyQuoteConversionPolicy`: static access to the `Default` Custom Metadata configuration, used directly by the legacy service.
-- `QuoteConversionPolicy`: injectable adapter that delegates to `LegacyQuoteConversionPolicy` through `IQuoteConversionPolicy`.
+- `LegacyQuoteConversionPolicy`: static access to the complete `Default` Custom Metadata policy record, used directly by the legacy service.
+- `QuoteConversionPolicy`: injectable adapter that delegates the complete policy lookup to `LegacyQuoteConversionPolicy` through `IQuoteConversionPolicy`.
 - `QuoteTriggerHandler` / `QuoteTriggerHandlerTest`: context routing and transition filtering tested with a mocked `IQuoteToOrderService`.
 - `QuoteTrigger` / `QuoteTriggerTest`: thin trigger wiring with bulk integration coverage.
 

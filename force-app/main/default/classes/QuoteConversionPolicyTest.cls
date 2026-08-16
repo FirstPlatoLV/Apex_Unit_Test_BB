@@ -1,12 +1,12 @@
 @IsTest
 private class QuoteConversionPolicyTest {
   @IsTest
-  static void acceptedQuoteStatusTest() {
+  static void getPolicyTest() {
     QuoteConversionPolicy policy = new QuoteConversionPolicy();
 
     Assert.areEqual(
-      LegacyQuoteConversionPolicy.acceptedQuoteStatus(),
-      policy.acceptedQuoteStatus()
+      LegacyQuoteConversionPolicy.getPolicy(),
+      policy.getPolicy()
     );
   }
 }

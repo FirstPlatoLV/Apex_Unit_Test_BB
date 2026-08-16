@@ -7,7 +7,8 @@ public inherited sharing class LegacyQuoteToOrderService {
     if (quotesById.size() != quoteIds.size()) {
       throw new QuoteToOrderException('Quote does not exist');
     }
-    String acceptedStatus = LegacyQuoteConversionPolicy.acceptedQuoteStatus();
+    Quote_Conversion_Policy__mdt policy = LegacyQuoteConversionPolicy.getPolicy();
+    String acceptedStatus = policy?.Accepted_Quote_Status__c;
     Set<Id> eligibleQuoteIds = new Set<Id>();
     for (Id quoteId : quoteIds) {
       if (quotesById.get(quoteId).Status == acceptedStatus) {

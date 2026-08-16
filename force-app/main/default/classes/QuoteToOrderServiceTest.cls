@@ -27,7 +27,13 @@ private class QuoteToOrderServiceTest {
     IQuoteConversionPolicy policy = (IQuoteConversionPolicy) policyMock.stub;
 
     Fixture() {
-      policyMock.spyOn('acceptedQuoteStatus').returns('Accepted');
+      policyMock.spyOn('getPolicy')
+        .returns(
+          new Quote_Conversion_Policy__mdt(
+            Accepted_Quote_Status__c = 'Accepted',
+            Use_Legacy_Implementation__c = false
+          )
+        );
     }
 
     QuoteToOrderService service() {
