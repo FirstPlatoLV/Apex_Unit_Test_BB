@@ -4,6 +4,8 @@
     >true</enabled></classAccesses>
     <classAccesses><apexClass>LegacyQuoteToOrderDAO</apexClass><enabled
     >true</enabled></classAccesses>
+    <classAccesses><apexClass>LegacyQuoteConversionPolicy</apexClass><enabled
+    >true</enabled></classAccesses>
     <classAccesses><apexClass>DMLExecutor</apexClass><enabled
     >true</enabled></classAccesses>
     <classAccesses><apexClass>QuoteToOrder</apexClass><enabled
