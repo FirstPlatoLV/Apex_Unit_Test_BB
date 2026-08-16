@@ -1,7 +1,7 @@
 @IsTest
 private class QuoteToOrderFacadeTest {
     @IsTest
-    static void staticFacadeUsesProductionComposition() {
+    static void convertTest() {
         BrownbagTestDataFactory.Graph graph = BrownbagTestDataFactory.createAcceptedQuote(2);
         Id orderId = QuoteToOrder.convert(graph.quoteRecord.Id);
         Order saved = [SELECT AccountId, Pricebook2Id, Status FROM Order WHERE Id = :orderId];

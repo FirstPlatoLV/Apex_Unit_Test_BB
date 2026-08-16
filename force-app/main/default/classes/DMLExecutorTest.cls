@@ -1,24 +1,30 @@
 @IsTest
 private class DMLExecutorTest {
-    @IsTest static void wrapsGenericBulkDatabaseOperations() {
-        DMLExecutor dml = new DMLExecutor();
-        List<SObject> first = records(new Account(Name='DML executor one'));
-        List<SObject> second = records(new Account(Name='DML executor two'));
-        assertSucceeded(dml.insertRecords(first,true));
-        assertSucceeded(dml.insertRecords(second,true,System.AccessLevel.SYSTEM_MODE));
-        ((Account)first[0]).Name='DML executor one updated'; ((Account)second[0]).Name='DML executor two updated';
-        assertSucceeded(dml.updateRecords(first,true));
-        assertSucceeded(dml.updateRecords(second,true,System.AccessLevel.SYSTEM_MODE));
-        assertUpserted(dml.upsertRecords(first,Account.Id,true));
-        assertUpserted(dml.upsertRecords(second,Account.Id,true,System.AccessLevel.SYSTEM_MODE));
-        assertDeleted(dml.deleteRecords(first,true));
-        assertDeleted(dml.deleteRecords(second,true,System.AccessLevel.SYSTEM_MODE));
-        assertUndeleted(dml.undeleteRecords(first,true));
-        assertUndeleted(dml.undeleteRecords(second,true,System.AccessLevel.SYSTEM_MODE));
+    @IsTest static void insertRecordsTest() {
+        DMLExecutor dml=new DMLExecutor(); List<SObject> first=records(new Account(Name='one')), second=records(new Account(Name='two'));
+        System.assert(dml.insertRecords(first,true)[0].isSuccess());
+        System.assert(dml.insertRecords(second,true,System.AccessLevel.SYSTEM_MODE)[0].isSuccess());
+    }
+    @IsTest static void updateRecordsTest() {
+        Account first=new Account(Name='one'),second=new Account(Name='two'); insert new List<Account>{first,second};
+        first.Name='updated one'; second.Name='updated two'; DMLExecutor dml=new DMLExecutor();
+        System.assert(dml.updateRecords(records(first),true)[0].isSuccess());
+        System.assert(dml.updateRecords(records(second),true,System.AccessLevel.SYSTEM_MODE)[0].isSuccess());
+    }
+    @IsTest static void upsertRecordsTest() {
+        Account first=new Account(Name='one'),second=new Account(Name='two'); insert new List<Account>{first,second}; DMLExecutor dml=new DMLExecutor();
+        System.assert(dml.upsertRecords(records(first),Account.Id,true)[0].isSuccess());
+        System.assert(dml.upsertRecords(records(second),Account.Id,true,System.AccessLevel.SYSTEM_MODE)[0].isSuccess());
+    }
+    @IsTest static void deleteRecordsTest() {
+        Account first=new Account(Name='one'),second=new Account(Name='two'); insert new List<Account>{first,second}; DMLExecutor dml=new DMLExecutor();
+        System.assert(dml.deleteRecords(records(first),true)[0].isSuccess());
+        System.assert(dml.deleteRecords(records(second),true,System.AccessLevel.SYSTEM_MODE)[0].isSuccess());
+    }
+    @IsTest static void undeleteRecordsTest() {
+        Account first=new Account(Name='one'),second=new Account(Name='two'); insert new List<Account>{first,second}; delete new List<Account>{first,second}; DMLExecutor dml=new DMLExecutor();
+        System.assert(dml.undeleteRecords(records(first),true)[0].isSuccess());
+        System.assert(dml.undeleteRecords(records(second),true,System.AccessLevel.SYSTEM_MODE)[0].isSuccess());
     }
     private static List<SObject> records(SObject record){ return new List<SObject>{record}; }
-    private static void assertSucceeded(Database.SaveResult[] r){ System.assertEquals(1,r.size()); System.assert(r[0].isSuccess()); }
-    private static void assertUpserted(Database.UpsertResult[] r){ System.assertEquals(1,r.size()); System.assert(r[0].isSuccess()); }
-    private static void assertDeleted(Database.DeleteResult[] r){ System.assertEquals(1,r.size()); System.assert(r[0].isSuccess()); }
-    private static void assertUndeleted(Database.UndeleteResult[] r){ System.assertEquals(1,r.size()); System.assert(r[0].isSuccess()); }
 }

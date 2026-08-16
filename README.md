@@ -41,7 +41,7 @@ Apex Stub API mocks cannot cross a managed-package namespace boundary. This veri
 Bash equivalents with the same filenames are also provided. Manual commands:
 
 ```text
-sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests QuoteToOrderFacadeTest --wait 30
+sf project deploy start --target-org unittestorg --source-dir force-app/main/default --test-level RunSpecifiedTests --tests LegacyQuoteToOrderServiceTest --tests QuoteToOrderServiceTest --tests QuoteToOrderDAOTest --tests DMLExecutorTest --tests BrownbagDemoPolicyTest --tests QuoteToOrderServiceFactoryTest --tests QuoteToOrderResultTest --tests SystemDateProviderTest --tests QuoteToOrderFacadeTest --wait 30
 sf org assign permset --name Brownbag_Testable_Apex --target-org unittestorg
 sf apex run test --target-org unittestorg --tests LegacyQuoteToOrderServiceTest --synchronous --result-format json
 sf apex run test --target-org unittestorg --tests QuoteToOrderServiceTest --synchronous --result-format json
@@ -50,8 +50,10 @@ sf org open --target-org unittestorg
 
 ## Class and test map
 
+Refactored-path tests use a method-oriented convention: each production method, including private methods exercised through public behavior, has a dedicated `<methodName>Test` method. One test covers all overloads sharing the same production method name.
+
 - `LegacyQuoteToOrderService` / `LegacyQuoteToOrderDAO` / `LegacyQuoteToOrderServiceTest`: bulk-safe static coupling through set-based query/DML wrappers and complete persisted data graphs.
-- `QuoteToOrderService` / `QuoteToOrderServiceTest`: injected business logic and seven Mockery tests with no SOQL/DML.
+- `QuoteToOrderService` / `QuoteToOrderServiceTest`: injected business logic with method-oriented Mockery tests and no SOQL/DML.
 - `QuoteToOrderDAO` / `QuoteToOrderDAOTest`: combined, bulk persistence behavior with mapping tested independently through a mocked `IDMLExecutor`.
 - `DMLExecutor`: a reusable, object-agnostic wrapper around bulk insert, upsert, update, delete, and undelete `Database` calls, including `allOrNone`, external-ID, and access-level parameters.
 - `QuoteToOrderServiceFactory`: production composition root.

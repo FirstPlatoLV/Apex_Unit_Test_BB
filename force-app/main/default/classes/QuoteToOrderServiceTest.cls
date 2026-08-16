@@ -10,7 +10,7 @@ private class QuoteToOrderServiceTest {
         QuoteToOrderService service(){ return new QuoteToOrderService(dao,dates,'Accepted'); }
     }
 
-    @IsTest static void acceptedQuoteMapsAndPersistsTwoLines() {
+    @IsTest static void convertTest() {
         Fixture f=configured(quoteWith('Accepted',null,ACCOUNT_ID,PRICEBOOK_ID),twoLines());
         f.dateMock.spyOn('today').returns(FIXED_DATE);
         Map<Id,Order> expectedOrders=new Map<Id,Order>{QUOTE_ID=>new Order(AccountId=ACCOUNT_ID,EffectiveDate=FIXED_DATE,Pricebook2Id=PRICEBOOK_ID,Status='Draft')};
@@ -22,17 +22,23 @@ private class QuoteToOrderServiceTest {
         System.assertEquals(ORDER_ID,result.orderId); System.assertEquals(2,result.orderItemCount);
         Expect.that(save).hasBeenCalledTimes(1);
         Expect.that(mark).hasBeenCalledWith(Argument.jsonEquals(new Map<Id,Id>{QUOTE_ID=>ORDER_ID}));
+
+        System.assertEquals(0,f.service().convert(new Set<Id>()).size());
+        System.assertEquals(0,f.service().convert((Set<Id>)null).size());
+        assertRejected(configured(null,twoLines()),'Quote does not exist');
+
+        Fixture failed=configured(quoteWith('Accepted',null,ACCOUNT_ID,PRICEBOOK_ID),twoLines()); failed.dateMock.spyOn('today').returns(FIXED_DATE);
+        MethodSpy failedSave=failed.daoMock.spyOn('saveOrders'); failedSave.throwsException(new DAOFailureException('Order persistence failed'));
+        MethodSpy failedMark=failed.daoMock.spyOn('markQuotesConverted');
+        try { failed.service().convert(QUOTE_ID); System.assert(false,'Expected DAO failure'); } catch(DAOFailureException e){ System.assertEquals('Order persistence failed',e.getMessage()); }
+        Expect.that(failedSave).hasBeenCalledTimes(1); Expect.that(failedMark).hasBeenCalledTimes(0);
     }
-    @IsTest static void nonAcceptedQuoteDoesNotSave(){ assertRejected(configured(quoteWith('Draft',null,ACCOUNT_ID,PRICEBOOK_ID),twoLines()),'Quote status is not accepted'); }
-    @IsTest static void alreadyConvertedQuoteDoesNotSave(){ assertRejected(configured(quoteWith('Accepted',ORDER_ID,ACCOUNT_ID,PRICEBOOK_ID),twoLines()),'Quote was already converted'); }
-    @IsTest static void quoteWithoutLinesDoesNotSave(){ assertRejected(configured(quoteWith('Accepted',null,ACCOUNT_ID,PRICEBOOK_ID),new List<QuoteLineItem>()),'Quote must contain at least one line'); }
-    @IsTest static void missingQuoteDoesNotSave(){ assertRejected(configured(null,twoLines()),'Quote does not exist'); }
-    @IsTest static void missingContextDoesNotSave(){ assertRejected(configured(quoteWith('Accepted',null,null,PRICEBOOK_ID),twoLines()),'Quote Account is required'); assertRejected(configured(quoteWith('Accepted',null,ACCOUNT_ID,null),twoLines()),'Quote Price Book is required'); }
-    @IsTest static void persistenceFailurePropagatesAndDoesNotMark(){
-        Fixture f=configured(quoteWith('Accepted',null,ACCOUNT_ID,PRICEBOOK_ID),twoLines()); f.dateMock.spyOn('today').returns(FIXED_DATE);
-        MethodSpy save=f.daoMock.spyOn('saveOrders'); save.throwsException(new DAOFailureException('Order persistence failed')); MethodSpy mark=f.daoMock.spyOn('markQuotesConverted');
-        try { f.service().convert(QUOTE_ID); System.assert(false,'Expected DAO failure'); } catch(DAOFailureException e){ System.assertEquals('Order persistence failed',e.getMessage()); }
-        Expect.that(save).hasBeenCalledTimes(1); Expect.that(mark).hasBeenCalledTimes(0);
+    @IsTest static void validateTest(){
+        assertRejected(configured(quoteWith('Draft',null,ACCOUNT_ID,PRICEBOOK_ID),twoLines()),'Quote status is not accepted');
+        assertRejected(configured(quoteWith('Accepted',ORDER_ID,ACCOUNT_ID,PRICEBOOK_ID),twoLines()),'Quote was already converted');
+        assertRejected(configured(quoteWith('Accepted',null,null,PRICEBOOK_ID),twoLines()),'Quote Account is required');
+        assertRejected(configured(quoteWith('Accepted',null,ACCOUNT_ID,null),twoLines()),'Quote Price Book is required');
+        assertRejected(configured(quoteWith('Accepted',null,ACCOUNT_ID,PRICEBOOK_ID),new List<QuoteLineItem>()),'Quote must contain at least one line');
     }
     private static Fixture configured(Quote q,List<QuoteLineItem> lines){
         Fixture f=new Fixture(); Map<Id,Quote> quotes=new Map<Id,Quote>(); if(q!=null)quotes.put(QUOTE_ID,q);
