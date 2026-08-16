@@ -1,3 +1,3 @@
 public interface IDateProvider {
-    Date today();
+  Date today();
 }

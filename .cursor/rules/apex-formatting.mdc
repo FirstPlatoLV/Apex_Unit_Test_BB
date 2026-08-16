@@ -1,0 +1,20 @@
+---
+description: Apex whitespace and control-flow formatting conventions
+globs: "**/*.cls"
+alwaysApply: false
+---
+
+# Apex formatting
+
+- Format every changed Apex file with the repository's configured Prettier Apex plugin.
+- Put spaces around assignment and binary operators and after commas.
+- Put spaces inside collection initializer braces, for example `new Set<Id>{ recordId }`.
+- Use one statement per line.
+- Always wrap the body of `if`, `else`, `for`, `while`, and similar control-flow statements in braces, even when the body contains one statement.
+- Never place the controlled statement on the same line as its condition.
+
+```apex
+if (condition) {
+  doLogic();
+}
+```

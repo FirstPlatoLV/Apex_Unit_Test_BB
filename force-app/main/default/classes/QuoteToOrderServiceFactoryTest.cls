@@ -1,6 +1,7 @@
 @IsTest
 private class QuoteToOrderServiceFactoryTest {
-    @IsTest static void createDefaultTest() {
-        Assert.isNotNull(QuoteToOrderServiceFactory.createDefault());
-    }
+  @IsTest
+  static void createDefaultTest() {
+    Assert.isNotNull(QuoteToOrderServiceFactory.createDefault());
+  }
 }
