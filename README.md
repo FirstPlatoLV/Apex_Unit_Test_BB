@@ -130,7 +130,7 @@ The complete test command runs all 13 repository test classes. The implementatio
 
 ## Class and test map
 
-Refactored-path tests use a method-oriented convention: each production method, including private methods exercised through public behavior, has a dedicated `<methodName>Test` method. One test covers all overloads sharing the same production method name.
+All unit-test classes use a method-oriented convention: each production method, including `@TestVisible` private methods, has exactly one dedicated `<methodName>Test` method. `constructorTest` is the naming exception. One test covers all overloads and all meaningful scenarios or branches for its production method; inline scenario comments keep those branches readable without multiplying test methods.
 
 - `LegacyQuoteToOrderService` / `LegacyQuoteToOrderDAO` / `LegacyQuoteToOrderServiceTest`: bulk-safe static query coupling, direct service DML for straightforward inserts, DAO-mapped Quote updates, and complete persisted data graphs.
 - `QuoteToOrderService` / `QuoteToOrderServiceTest`: injected business logic with method-oriented Mockery tests and no SOQL/DML.
@@ -154,10 +154,12 @@ Before timing, the implementation-specific production classes were verified at 1
 
 The benchmark excludes `QuoteTriggerTest`, the reusable `DMLExecutorTest`, and shared trigger/result/utility tests that cannot be attributed uniquely to either implementation. The measured suites are:
 
-- Legacy: `LegacyQuoteToOrderServiceTest` and `LegacyQuoteConversionPolicyTest`—2 classes and 12 test methods.
-- Refactored: `QuoteToOrderServiceTest`, `QuoteToOrderDAOTest`, `SystemDateProviderTest`, and `QuoteConversionPolicyTest`—4 classes and 12 test methods.
+- Legacy: `LegacyQuoteToOrderServiceTest` and `LegacyQuoteConversionPolicyTest`.
+- Refactored: `QuoteToOrderServiceTest`, `QuoteToOrderDAOTest`, `SystemDateProviderTest`, and `QuoteConversionPolicyTest`.
 
-Each suite ran once for warm-up followed by five measured runs. The runs within each sample were submitted and completed sequentially. Both samples use the current suite definitions, including the refactored `convertExceptionTest`. Salesforce execution time is the platform-reported Apex test duration; wall time additionally includes CLI startup, network latency, queueing, and result processing.
+Each suite ran once for warm-up followed by five measured runs. The runs within each sample were submitted and completed sequentially. Salesforce execution time is the platform-reported Apex test duration; wall time additionally includes CLI startup, network latency, queueing, and result processing.
+
+> **Historical benchmark note:** the saved measurements below predate the consolidation of branch-specific tests into one `<methodName>Test` per production method. They remain useful as repository history, but the benchmark scripts must be rerun before presenting the figures as measurements of the current suite definitions.
 
 | Suite      | Salesforce median | Salesforce range | Wall median |      Wall range |
 | ---------- | ----------------: | ---------------: | ----------: | --------------: |
@@ -188,7 +190,7 @@ The Salesforce median was **1,307 ms** with a **937–1,814 ms** range. Median w
 
 The saved [DML executor summary](benchmark-results/dml-executor-20260816-201011/summary.md), [CSV measurements](benchmark-results/dml-executor-20260816-201011/summary.csv), and [raw CLI JSON](benchmark-results/dml-executor-20260816-201011/raw/) preserve the infrastructure benchmark.
 
-### Legacy end-to-end timing
+### Legacy end-to-end timing — historical two-method snapshot
 
 For this measurement, `Use_Legacy_Implementation__c` was manually enabled in the org. `QuoteTriggerTest` used the actual Custom Metadata record and production dependencies; it did not mock or override the policy, trigger handler, legacy service, DAO, or DML. The two methods cover successful Quote conversion and rejection of a non-eligible status.
 
@@ -213,7 +215,7 @@ This E2E timing is reported separately from the service-suite benchmark because 
 
 The saved [detailed legacy E2E summary](benchmark-results/e2e-legacy-detailed-20260816-201339/summary.md), [suite CSV](benchmark-results/e2e-legacy-detailed-20260816-201339/suite-summary.csv), [per-method CSV](benchmark-results/e2e-legacy-detailed-20260816-201339/method-summary.csv), and [raw CLI JSON](benchmark-results/e2e-legacy-detailed-20260816-201339/raw/) preserve the end-to-end benchmark.
 
-### Refactored end-to-end timing
+### Refactored end-to-end timing — historical two-method snapshot
 
 For this measurement, `Use_Legacy_Implementation__c` was manually disabled in the org. The same unmodified `QuoteTriggerTest` methods used the actual Custom Metadata record and the fully composed refactored service, DAO, DML executor, policy, and date provider.
 
@@ -247,9 +249,9 @@ The saved [detailed refactored E2E summary](benchmark-results/e2e-refactored-det
 
 In these five-run samples, the refactored E2E median was higher. The ranges overlap substantially, and both paths perform the same real setup, SOQL, Order/OrderItem DML, Quote update, and trigger execution. This comparison validates equivalent production behavior; it does not isolate the unit-test speed benefit measured in the implementation benchmark above.
 
-### Reproducing the E2E measurement
+### Reproducing the current E2E measurement
 
-Set `Use_Legacy_Implementation__c` on the org's `Quote_Conversion_Policy.Default` Custom Metadata record to the implementation being measured. `QuoteTriggerTest` reads the real record, so no test-code change is required. Run one unmeasured warm-up, then five measured runs. Keep the runs sequential and do not enable parallel execution.
+Set `Use_Legacy_Implementation__c` on the org's `Quote_Conversion_Policy.Default` Custom Metadata record to the implementation being measured. `QuoteTriggerTest` reads the real record, so no test-code change is required. Its single `quoteTriggerTest` method now contains commented eligible and ineligible scenarios, in accordance with the one-test-per-production-method convention. Run one unmeasured warm-up, then five measured runs. Keep the runs sequential and do not enable parallel execution.
 
 Single run, including the per-method runtime breakdown:
 

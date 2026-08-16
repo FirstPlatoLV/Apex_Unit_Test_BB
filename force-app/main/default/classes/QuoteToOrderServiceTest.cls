@@ -128,15 +128,9 @@ private class QuoteToOrderServiceTest {
       skipped.service().convert(new Set<Id>{ QUOTE_ID }).containsKey(QUOTE_ID)
     );
     Expect.that(skippedSave).hasBeenCalledTimes(0);
-  }
 
-  /**
-   * Verifies a mocked DAO exception is propagated and the Quote is not marked
-   * converted after Order persistence fails. The failure is deterministic and
-   * requires no invalid database state or platform outage.
-   */
-  @IsTest
-  static void convertExceptionTest() {
+    // Scenario: a mocked persistence exception propagates from the exact
+    // boundary and prevents the subsequent Quote-conversion update.
     Fixture failed = configured(
       quoteWith('Accepted', null, ACCOUNT_ID, PRICEBOOK_ID),
       twoLines()
@@ -154,9 +148,8 @@ private class QuoteToOrderServiceTest {
       Assert.areEqual('Order persistence failed', e.getMessage());
     }
     Expect.that(failedSave).hasBeenCalledTimes(1);
-    // Because the mock throws at the exact saveOrders boundary, the test can
-    // prove execution stopped there and never attempted the subsequent Quote
-    // update. Reproducing that precise failure point with real DML is difficult.
+    // The controlled failure point lets us prove markQuotesConverted was never
+    // called, which is difficult to reproduce precisely with real DML.
     Expect.that(failedMark).hasBeenCalledTimes(0);
   }
 

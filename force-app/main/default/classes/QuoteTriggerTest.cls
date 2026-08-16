@@ -17,6 +17,8 @@ private class QuoteTriggerTest {
    */
   @IsTest
   static void quoteTriggerTest() {
+    // Scenario: an eligible status transition creates and links the complete
+    // Order graph through whichever implementation metadata currently selects.
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
       2
     );
@@ -43,32 +45,25 @@ private class QuoteTriggerTest {
         WHERE OrderId = :convertedQuote.Converted_Order__c
       ]
     );
-  }
 
-  /**
-   * Verifies a transition to an ineligible status runs no conversion, leaving
-   * the Quote unlinked and creating no Order.
-   */
-  @IsTest
-  static void nonEligibleStatusTest() {
-    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
+    // Scenario: an ineligible transition leaves the Quote unlinked and creates
+    // no Order for its Account.
+    QuoteToOrderTestDataFactory.Graph ineligible = QuoteToOrderTestDataFactory.createAcceptedQuote(
       1
     );
 
-    Test.startTest();
-    graph.quoteRecord.Status = 'Draft';
-    update graph.quoteRecord;
-    Test.stopTest();
+    ineligible.quoteRecord.Status = 'Draft';
+    update ineligible.quoteRecord;
 
     Quote unchangedQuote = [
       SELECT Converted_Order__c
       FROM Quote
-      WHERE Id = :graph.quoteRecord.Id
+      WHERE Id = :ineligible.quoteRecord.Id
     ];
     Assert.isNull(unchangedQuote.Converted_Order__c);
     Assert.areEqual(
       0,
-      [SELECT COUNT() FROM Order WHERE AccountId = :graph.account.Id]
+      [SELECT COUNT() FROM Order WHERE AccountId = :ineligible.account.Id]
     );
   }
 }
