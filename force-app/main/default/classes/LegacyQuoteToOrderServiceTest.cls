@@ -2,9 +2,109 @@
 private class LegacyQuoteToOrderServiceTest {
   @IsTest
   static void convertQuotesTest() {
-    Assert.areEqual(
-      0,
-      new LegacyQuoteToOrderService().convertQuotes(new Set<Id>()).size()
+    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
+      1
+    );
+
+    QuoteToOrderResult result = new LegacyQuoteToOrderService()
+      .convertQuotes(new Set<Id>{ graph.quoteRecord.Id })
+      .get(graph.quoteRecord.Id);
+
+    Assert.isNotNull(result.orderId);
+    Assert.areEqual(1, result.orderItemCount);
+  }
+
+  @IsTest
+  static void nullAndEmptyInputTest() {
+    Assert.areEqual(0, LegacyQuoteToOrderService.convert(null).size());
+    Assert.areEqual(0, LegacyQuoteToOrderService.convert(new Set<Id>()).size());
+  }
+
+  @IsTest
+  static void unknownQuoteTest() {
+    assertConversionError(
+      new Set<Id>{ TestUtility.getFakeId(Quote.SObjectType) },
+      'Quote does not exist'
+    );
+  }
+
+  @IsTest
+  static void alreadyConvertedQuoteTest() {
+    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
+      1
+    );
+    Order existingOrder = new Order(
+      AccountId = graph.account.Id,
+      EffectiveDate = Date.today(),
+      Pricebook2Id = Test.getStandardPricebookId(),
+      Status = 'Draft'
+    );
+    insert existingOrder;
+    graph.quoteRecord.Converted_Order__c = existingOrder.Id;
+    update graph.quoteRecord;
+
+    assertConversionError(
+      new Set<Id>{ graph.quoteRecord.Id },
+      'Quote was already converted'
+    );
+  }
+
+  @IsTest
+  static void quoteWithoutAccountTest() {
+    Opportunity opportunity = new Opportunity(
+      Name = 'Accountless Opportunity',
+      StageName = 'Prospecting',
+      CloseDate = Date.today().addDays(30),
+      Pricebook2Id = Test.getStandardPricebookId()
+    );
+    insert opportunity;
+    Quote quoteRecord = new Quote(
+      Name = 'Accountless Quote',
+      OpportunityId = opportunity.Id,
+      Pricebook2Id = Test.getStandardPricebookId(),
+      Status = LegacyQuoteConversionPolicy.getPolicy().Accepted_Quote_Status__c
+    );
+    insert quoteRecord;
+
+    assertConversionError(
+      new Set<Id>{ quoteRecord.Id },
+      'Quote Account is required'
+    );
+  }
+
+  @IsTest
+  static void quoteWithoutPriceBookTest() {
+    Account accountRecord = new Account(Name = 'No Price Book Account');
+    insert accountRecord;
+    Opportunity opportunity = new Opportunity(
+      Name = 'No Price Book Opportunity',
+      AccountId = accountRecord.Id,
+      StageName = 'Prospecting',
+      CloseDate = Date.today().addDays(30)
+    );
+    insert opportunity;
+    Quote quoteRecord = new Quote(
+      Name = 'No Price Book Quote',
+      OpportunityId = opportunity.Id,
+      Status = LegacyQuoteConversionPolicy.getPolicy().Accepted_Quote_Status__c
+    );
+    insert quoteRecord;
+
+    assertConversionError(
+      new Set<Id>{ quoteRecord.Id },
+      'Quote Price Book is required'
+    );
+  }
+
+  @IsTest
+  static void quoteWithoutLinesTest() {
+    QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
+      0
+    );
+
+    assertConversionError(
+      new Set<Id>{ graph.quoteRecord.Id },
+      'Quote must contain at least one line'
     );
   }
 
@@ -171,6 +271,38 @@ private class LegacyQuoteToOrderServiceTest {
         resultsByQuoteId.get(convertedQuote.Id).orderId,
         convertedQuote.Converted_Order__c
       );
+    }
+  }
+
+  @IsTest
+  static void mixedEligibilityTest() {
+    QuoteToOrderTestDataFactory.Graph accepted = QuoteToOrderTestDataFactory.createAcceptedQuote(
+      1
+    );
+    QuoteToOrderTestDataFactory.Graph draft = QuoteToOrderTestDataFactory.createAcceptedQuote(
+      1
+    );
+    draft.quoteRecord.Status = 'Draft';
+    update draft.quoteRecord;
+
+    Map<Id, QuoteToOrderResult> resultsByQuoteId = LegacyQuoteToOrderService.convert(
+      new Set<Id>{ accepted.quoteRecord.Id, draft.quoteRecord.Id }
+    );
+
+    Assert.areEqual(1, resultsByQuoteId.size());
+    Assert.isTrue(resultsByQuoteId.containsKey(accepted.quoteRecord.Id));
+    Assert.isFalse(resultsByQuoteId.containsKey(draft.quoteRecord.Id));
+  }
+
+  private static void assertConversionError(
+    Set<Id> quoteIds,
+    String expectedMessage
+  ) {
+    try {
+      LegacyQuoteToOrderService.convert(quoteIds);
+      Assert.fail('Expected QuoteToOrderException');
+    } catch (QuoteToOrderException error) {
+      Assert.areEqual(expectedMessage, error.getMessage());
     }
   }
 }

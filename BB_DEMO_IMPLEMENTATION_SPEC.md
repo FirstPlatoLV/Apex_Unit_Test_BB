@@ -201,6 +201,8 @@ The class must intentionally demonstrate common coupling problems:
 - direct Quote update;
 - several responsibilities in one class.
 
+As a transitional step, the legacy class implements `IQuoteToOrderService` while retaining its static API and hardwired dependencies. Its instance interface method delegates directly to the static legacy entry point.
+
 The code must remain correct and readable. Do not introduce artificial inefficiency, unsafe bulk behavior, or deliberately bad security merely to strengthen the comparison.
 
 ### 7.2 Naïve tests

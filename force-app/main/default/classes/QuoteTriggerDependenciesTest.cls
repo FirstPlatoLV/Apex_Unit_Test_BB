@@ -23,6 +23,12 @@ private class QuoteTriggerDependenciesTest {
     IQuoteToOrderService actualService = QuoteTriggerDependencies.getLegacyService();
 
     Assert.areEqual(expectedService, actualService);
+
+    QuoteTriggerDependencies.legacyServiceOverride = null;
+
+    Assert.isTrue(
+      QuoteTriggerDependencies.getLegacyService() instanceof LegacyQuoteToOrderService
+    );
   }
 
   @IsTest
