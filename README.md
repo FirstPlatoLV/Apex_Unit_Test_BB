@@ -2,37 +2,54 @@
 
 This Salesforce DX project contrasts a tightly coupled Quote-to-Order implementation with an interface-driven, constructor-injected service tested using Apex Mockery. Its measured results demonstrate the practical payoff: isolated business-unit tests provide substantially faster feedback, while a focused integration suite proves that the complete Salesforce data flow still works.
 
+## Quote-to-Order process
+
+Conversion starts when an existing Quote is updated and its status changes. The trigger delegates the changed Quote to the selected service, which compares the Quote status with `Accepted_Quote_Status__c` from the `Quote_Conversion_Policy.Default` Custom Metadata record. The Opportunity stage does not control eligibility in this example; the default accepted Quote status is `Accepted`.
+
+For an eligible Quote, the service loads its Quote Lines, validates the source data, creates one draft Order, creates an Order Item for every Quote Line, and stores the new Order ID in `Quote.Converted_Order__c`. The conversion is bulkified, so one trigger invocation can process multiple Quotes.
+
+A realistic Quote test requires more than the Quote itself. Salesforce requires the surrounding sales data graph:
+
+```text
+Account
+  └─ Opportunity
+       └─ Quote
+            └─ Quote Line Items
+
+Price Book
+  └─ Price Book Entries
+       ├─ Quote Line Items
+       └─ Order Items
+```
+
+The Account supplies the future `Order.AccountId`, while the Opportunity is the required parent used to create the Quote. The Quote and Opportunity use the same Price Book, and each Quote Line references an active Price Book Entry. This is why the integration and E2E tests must create Accounts, Opportunities, Products, Price Book Entries, Quotes, and Quote Lines before they can verify Order creation.
+
+The positive scenario changes a complete Quote from another status to the configured accepted status. It verifies that the trigger creates the Order and all Order Items and links the Order back to the Quote. Negative scenarios verify that no Order is created when the Quote moves to a non-eligible status, and that conversion is rejected when an eligible Quote was already converted or is missing its Account, Price Book, or Quote Lines. Unit tests also simulate a persistence exception and verify that the Quote is not marked converted and that the trigger reports a record-level error.
+
 ## Architecture
 
-The diagrams begin at the two services and focus on how each implementation obtains the dependencies needed to convert Quotes. Both implementations are bulkified, return the same result type, and skip Quotes whose status is not eligible.
+The diagrams compare how the legacy and refactored services access the dependencies required to convert Quotes. Both implementations are bulkified, return the same result type, and skip Quotes whose status is not eligible.
 
 ### Legacy implementation: dependencies are hardwired
 
 ```mermaid
+%%{init: {"flowchart": {"curve": "linear"}}}%%
 flowchart TB
   LegacyService["LegacyQuoteToOrderService"]
-  StaticLogic["Static conversion method"]
-  LegacyPolicy["LegacyQuoteConversionPolicy"]
-  Metadata["Quote Conversion Policy metadata"]
-  LegacyDAO["LegacyQuoteToOrderDAO"]
-  SOQL["SOQL"]
-  Database["Database DML"]
-  SystemDate["Date.today"]
 
-  LegacyService -->|"instance method delegates"| StaticLogic
+  LegacyService -->|"static calls"| LegacyDAO["LegacyQuoteToOrderDAO"]
+  LegacyDAO --> SOQL["SOQL"]
+  LegacyDAO -->|"Quote update"| QuoteDML["Database DML<br/>Quote"]
 
-  StaticLogic -->|"hardwired static call"| LegacyPolicy
-  LegacyPolicy --> Metadata
+  LegacyService -->|"direct DML"| OrderDML["Database DML<br/>Order / Order Item"]
 
-  StaticLogic -->|"hardwired static call"| LegacyDAO
-  LegacyDAO --> SOQL
-  StaticLogic -->|"direct Order / OrderItem DML"| Database
-  LegacyDAO -->|"mapped Quote update"| Database
+  LegacyService -->|"static call"| LegacyPolicy["LegacyQuoteConversionPolicy"]
+  LegacyPolicy --> Metadata["Quote Conversion Policy metadata"]
 
-  StaticLogic -->|"hardwired system clock"| SystemDate
+  LegacyService -->|"direct call"| SystemDate["Date.today"]
 ```
 
-The interface around `LegacyQuoteToOrderService` is a transitional adapter: it lets the trigger and handler treat both implementations uniformly, but it deliberately does not change the legacy internals. Static policy access, data access, DML, and the system clock remain tightly coupled and therefore require data-heavy tests.
+The public instance method delegates to the service's existing static conversion method; that internal detail is omitted from the diagram so the dependency structure remains clear. The interface around `LegacyQuoteToOrderService` is a transitional adapter: it lets the trigger and handler treat both implementations uniformly, but it deliberately does not change the legacy internals. Static policy access, data access, DML, and the system clock remain tightly coupled and therefore require data-heavy tests.
 
 ### Refactored implementation: dependencies are supplied explicitly
 
@@ -63,30 +80,6 @@ flowchart TB
 The trigger-side components sit outside the service comparison. `QuoteTrigger` reads the feature flag, obtains either service from `QuoteTriggerDependencies`, and injects the selected `IQuoteToOrderService` into `QuoteTriggerHandler`. This wiring demonstrates how a tightly coupled implementation and a refactored implementation can coexist behind one contract while callers migrate incrementally. It does not change the internal architecture shown in either service diagram.
 
 All production classes use `inherited sharing`: callers determine record-sharing behavior, while the permission set grants explicit CRUD/FLS for manual demonstration. This sample is intentionally not a production-grade security framework.
-
-## Quote-to-Order process
-
-Conversion starts when an existing Quote is updated and its status changes. The trigger delegates the changed Quote to the selected service, which compares the Quote status with `Accepted_Quote_Status__c` from the `Quote_Conversion_Policy.Default` Custom Metadata record. The Opportunity stage does not control eligibility in this example; the default accepted Quote status is `Accepted`.
-
-For an eligible Quote, the service loads its Quote Lines, validates the source data, creates one draft Order, creates an Order Item for every Quote Line, and stores the new Order ID in `Quote.Converted_Order__c`. The conversion is bulkified, so one trigger invocation can process multiple Quotes.
-
-A realistic Quote test requires more than the Quote itself. Salesforce requires the surrounding sales data graph:
-
-```text
-Account
-  └─ Opportunity
-       └─ Quote
-            └─ Quote Line Items
-
-Price Book
-  └─ Price Book Entries
-       ├─ Quote Line Items
-       └─ Order Items
-```
-
-The Account supplies the future `Order.AccountId`, while the Opportunity is the required parent used to create the Quote. The Quote and Opportunity use the same Price Book, and each Quote Line references an active Price Book Entry. This is why the integration and E2E tests must create Accounts, Opportunities, Products, Price Book Entries, Quotes, and Quote Lines before they can verify Order creation.
-
-The positive scenario changes a complete Quote from another status to the configured accepted status. It verifies that the trigger creates the Order and all Order Items and links the Order back to the Quote. Negative scenarios verify that no Order is created when the Quote moves to a non-eligible status, and that conversion is rejected when an eligible Quote was already converted or is missing its Account, Price Book, or Quote Lines. Unit tests also simulate a persistence exception and verify that the Quote is not marked converted and that the trigger reports a record-level error.
 
 ## Prerequisites and preflight
 
