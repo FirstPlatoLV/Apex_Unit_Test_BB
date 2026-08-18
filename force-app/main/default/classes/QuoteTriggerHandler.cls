@@ -6,6 +6,7 @@
  * easy to test without invoking conversion logic or DML.
  */
 public inherited sharing class QuoteTriggerHandler {
+
   private final IQuoteToOrderService service;
 
   public QuoteTriggerHandler(IQuoteToOrderService service) {

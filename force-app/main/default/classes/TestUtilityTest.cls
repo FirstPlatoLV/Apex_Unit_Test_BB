@@ -1,5 +1,6 @@
 @IsTest
 private class TestUtilityTest {
+
   /** Verifies fake IDs are valid, unique, 15-character, type-prefixed IDs. */
   @IsTest
   static void getFakeIdTest() {

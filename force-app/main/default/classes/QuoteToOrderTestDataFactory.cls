@@ -5,7 +5,9 @@
  * the source of the test-runtime lesson demonstrated by the repository.
  */
 public class QuoteToOrderTestDataFactory {
+
   public class Graph {
+
     public Account account;
     public Opportunity opportunity;
     public Quote quoteRecord;

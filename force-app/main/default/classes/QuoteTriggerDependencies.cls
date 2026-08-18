@@ -6,6 +6,7 @@
  * IQuoteToOrderService is passed to it.
  */
 public inherited sharing class QuoteTriggerDependencies {
+
   public static Quote_Conversion_Policy__mdt getPolicy() {
 
     return new QuoteConversionPolicy().getPolicy();

@@ -5,6 +5,7 @@
  * either implementation or performing DML.
  */
 private class QuoteTriggerHandlerTest {
+
   private static final Id CHANGED_QUOTE_ID = TestUtility.getFakeId(
     Quote.SObjectType
   );
@@ -17,9 +18,11 @@ private class QuoteTriggerHandlerTest {
   private static final Id ORDER_ID = TestUtility.getFakeId(Order.SObjectType);
 
   private class ConversionFailureException extends Exception {
+
   }
 
   private class Fixture {
+
     Mock serviceMock = Mock.forType(IQuoteToOrderService.class);
     IQuoteToOrderService service = (IQuoteToOrderService) serviceMock.stub;
 

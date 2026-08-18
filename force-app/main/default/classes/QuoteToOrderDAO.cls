@@ -7,6 +7,7 @@
  * tested once as shared infrastructure.
  */
 public inherited sharing class QuoteToOrderDAO implements IQuoteToOrderDAO {
+
   private final IDMLExecutor dml;
 
   public QuoteToOrderDAO() {

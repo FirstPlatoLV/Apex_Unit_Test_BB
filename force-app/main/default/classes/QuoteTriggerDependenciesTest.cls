@@ -5,6 +5,7 @@
  * can be constructed; they complement isolated service tests.
  */
 private class QuoteTriggerDependenciesTest {
+
   /** Verifies the composition root exposes the actual Default policy record. */
   @IsTest
   static void getPolicyTest() {

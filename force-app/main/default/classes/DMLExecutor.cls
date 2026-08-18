@@ -6,6 +6,7 @@
  * runtime is excluded from per-service benchmarks.
  */
 public inherited sharing class DMLExecutor implements IDMLExecutor {
+
   public Database.SaveResult[] insertRecords(
     List<SObject> records,
     Boolean allOrNone

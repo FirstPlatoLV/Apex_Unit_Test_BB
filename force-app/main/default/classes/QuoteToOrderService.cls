@@ -7,6 +7,7 @@
  * in-memory records and mocks instead of constructing a Salesforce data graph.
  */
 public inherited sharing class QuoteToOrderService implements IQuoteToOrderService {
+
   private final IQuoteToOrderDAO dao;
   private final IDateProvider dateProvider;
   private final IQuoteConversionPolicy policy;

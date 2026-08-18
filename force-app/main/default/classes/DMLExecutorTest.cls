@@ -5,6 +5,7 @@
  * their cost is infrastructure cost, not repeated service-unit-test cost.
  */
 private class DMLExecutorTest {
+
   /** Verifies both insert overloads execute real Account DML successfully. */
   @IsTest
   static void insertRecordsTest() {

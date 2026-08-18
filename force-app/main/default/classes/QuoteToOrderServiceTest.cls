@@ -5,6 +5,7 @@
  * SOQL/DML while still covering every service method and validation branch.
  */
 private class QuoteToOrderServiceTest {
+
   private static final Id QUOTE_ID = TestUtility.getFakeId(Quote.SObjectType);
   private static final Id QUOTE_TWO_ID = TestUtility.getFakeId(
     Quote.SObjectType
@@ -24,9 +25,11 @@ private class QuoteToOrderServiceTest {
   private static final Id ORDER_ID = TestUtility.getFakeId(Order.SObjectType);
   private static final Date FIXED_DATE = Date.newInstance(2030, 4, 15);
   private class DAOFailureException extends Exception {
+
   }
 
   private class Fixture {
+
     Mock daoMock = Mock.forType(IQuoteToOrderDAO.class),
       dateMock = Mock.forType(IDateProvider.class),
       policyMock = Mock.forType(IQuoteConversionPolicy.class);

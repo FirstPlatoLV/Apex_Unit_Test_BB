@@ -7,6 +7,7 @@
  * with a mock, so the behavior is covered through data-heavy integration tests.
  */
 public inherited sharing class LegacyQuoteToOrderDAO {
+
   public static Map<Id, Quote> findQuotes(Set<Id> quoteIds) {
 
     return new Map<Id, Quote>(

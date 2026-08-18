@@ -1,5 +1,6 @@
 @IsTest
 private class QuoteToOrderExceptionTest {
+
   /** Verifies the custom exception constructor preserves its message. */
   @IsTest
   static void constructorTest() {

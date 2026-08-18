@@ -11,6 +11,7 @@
  * reduced. Retain a small set of critical journeys to verify production wiring.
  */
 private class QuoteTriggerTest {
+
   /**
    * Verifies an eligible status transition runs the complete metadata-selected
    * trigger path and persists an Order with every expected Order Item.

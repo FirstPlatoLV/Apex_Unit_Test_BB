@@ -1,5 +1,6 @@
 @IsTest
 private class QuoteToOrderResultTest {
+
   /** Verifies the result constructor exposes the Order ID and item count. */
   @IsTest
   static void constructorTest() {

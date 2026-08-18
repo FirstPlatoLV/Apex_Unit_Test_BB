@@ -1,5 +1,6 @@
 @IsTest
 private class LegacyQuoteConversionPolicyTest {
+
   /** Verifies the static legacy accessor returns the org's Default policy. */
   @IsTest
   static void getPolicyTest() {

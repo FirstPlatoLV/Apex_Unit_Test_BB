@@ -6,6 +6,7 @@
  * IDMLExecutor to inspect mapping and call parameters without database writes.
  */
 private class QuoteToOrderDAOTest {
+
   private static final Id QUOTE_ONE_ID = TestUtility.getFakeId(
     Quote.SObjectType
   );

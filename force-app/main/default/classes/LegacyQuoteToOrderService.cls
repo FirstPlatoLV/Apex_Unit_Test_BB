@@ -8,6 +8,7 @@
  * can depend on an abstraction before the internals are fully refactored.
  */
 public inherited sharing class LegacyQuoteToOrderService implements IQuoteToOrderService {
+
   /** Delegates the interface contract to the existing static entry point. */
   public Map<Id, QuoteToOrderResult> convertQuotes(Set<Id> quoteIds) {
 

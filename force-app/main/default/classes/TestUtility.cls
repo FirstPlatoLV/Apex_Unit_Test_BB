@@ -5,6 +5,7 @@
  * or brittle hardcoded IDs.
  */
 public class TestUtility {
+
   private static Integer s_num = 1;
 
   public static String getFakeId(Schema.SObjectType sObjectType) {

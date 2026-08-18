@@ -6,6 +6,7 @@
  * and mock it in unit tests without rewriting the existing implementation.
  */
 public inherited sharing class QuoteConversionPolicy implements IQuoteConversionPolicy {
+
   public Quote_Conversion_Policy__mdt getPolicy() {
 
     return LegacyQuoteConversionPolicy.getPolicy();

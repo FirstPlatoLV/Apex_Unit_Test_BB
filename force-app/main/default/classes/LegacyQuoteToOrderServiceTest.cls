@@ -8,6 +8,7 @@
  * the hardwired conversion path genuinely requires.
  */
 private class LegacyQuoteToOrderServiceTest {
+
   private static final String ACCEPTED_TWO_LINES = 'Accepted Two Lines';
   private static final String ACCEPTED_ONE_LINE = 'Accepted One Line';
   private static final String DRAFT_ONE_LINE = 'Draft One Line';
