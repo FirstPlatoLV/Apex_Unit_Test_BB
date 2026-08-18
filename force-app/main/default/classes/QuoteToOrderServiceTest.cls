@@ -35,6 +35,7 @@ private class QuoteToOrderServiceTest {
     IQuoteConversionPolicy policy = (IQuoteConversionPolicy) policyMock.stub;
 
     Fixture() {
+
       policyMock.spyOn('getPolicy')
         .returns(
           new Quote_Conversion_Policy__mdt(
@@ -45,6 +46,7 @@ private class QuoteToOrderServiceTest {
     }
 
     QuoteToOrderService service() {
+
       return new QuoteToOrderService(dao, dates, policy);
     }
   }
@@ -52,6 +54,7 @@ private class QuoteToOrderServiceTest {
   /** Verifies the service accepts its DAO, date, and policy dependencies. */
   @IsTest
   static void constructorTest() {
+
     Fixture f = new Fixture();
 
     Assert.isNotNull(new QuoteToOrderService(f.dao, f.dates, f.policy));
@@ -64,6 +67,7 @@ private class QuoteToOrderServiceTest {
    */
   @IsTest
   static void convertQuotesTest() {
+
     Fixture f = configured(
       quoteWith('Accepted', null, ACCOUNT_ID, PRICEBOOK_ID),
       twoLines()
@@ -136,9 +140,11 @@ private class QuoteToOrderServiceTest {
     );
     MethodSpy failedMark = failed.daoMock.spyOn('markQuotesConverted');
     try {
+
       failed.service().convertQuotes(new Set<Id>{ QUOTE_ID });
       Assert.fail('Expected DAO failure');
     } catch (DAOFailureException e) {
+
       Assert.areEqual('Order persistence failed', e.getMessage());
     }
     Expect.that(failedSave).hasBeenCalledTimes(1);
@@ -150,6 +156,7 @@ private class QuoteToOrderServiceTest {
   /** Verifies only Quotes matching the supplied accepted status are selected. */
   @IsTest
   static void selectEligibleQuoteIdsTest() {
+
     Map<Id, Quote> quotesById = new Map<Id, Quote>{
       QUOTE_ID => quoteWith('Accepted', null, ACCOUNT_ID, PRICEBOOK_ID),
       QUOTE_TWO_ID => quoteWithId(
@@ -171,6 +178,7 @@ private class QuoteToOrderServiceTest {
   /** Verifies Quote Lines are grouped by their parent Quote ID. */
   @IsTest
   static void groupQuoteLinesTest() {
+
     Map<Id, List<QuoteLineItem>> result = new Fixture()
       .service()
       .groupQuoteLines(twoLines());
@@ -182,6 +190,7 @@ private class QuoteToOrderServiceTest {
   /** Verifies validated Quotes are mapped to draft Orders. */
   @IsTest
   static void buildOrdersTest() {
+
     Quote quoteRecord = quoteWith('Accepted', null, ACCOUNT_ID, PRICEBOOK_ID);
     Map<Id, List<QuoteLineItem>> linesByQuoteId = new Map<Id, List<QuoteLineItem>>{
       QUOTE_ID => twoLines()
@@ -206,6 +215,7 @@ private class QuoteToOrderServiceTest {
   /** Verifies Quote Lines are mapped to unpersisted Order Items. */
   @IsTest
   static void buildOrderItemsTest() {
+
     Map<Id, List<OrderItem>> result = new Fixture()
       .service()
       .buildOrderItems(
@@ -222,6 +232,7 @@ private class QuoteToOrderServiceTest {
   /** Verifies persisted Order IDs and item counts become result objects. */
   @IsTest
   static void buildResultsTest() {
+
     QuoteToOrderResult result = new Fixture()
       .service()
       .buildResults(
@@ -243,6 +254,7 @@ private class QuoteToOrderServiceTest {
    */
   @IsTest
   static void validateTest() {
+
     assertRejected(
       configured(
         quoteWith('Accepted', ORDER_ID, ACCOUNT_ID, PRICEBOOK_ID),
@@ -268,9 +280,11 @@ private class QuoteToOrderServiceTest {
   }
 
   private static Fixture configured(Quote q, List<QuoteLineItem> lines) {
+
     Fixture f = new Fixture();
     Map<Id, Quote> quotes = new Map<Id, Quote>();
     if (q != null) {
+
       quotes.put(QUOTE_ID, q);
     }
     f.daoMock.spyOn('findQuotes')
@@ -283,11 +297,14 @@ private class QuoteToOrderServiceTest {
   }
 
   private static void assertRejected(Fixture f, String message) {
+
     MethodSpy save = f.daoMock.spyOn('saveOrders');
     try {
+
       f.service().convertQuotes(new Set<Id>{ QUOTE_ID });
       Assert.fail('Expected rejection');
     } catch (QuoteToOrderException e) {
+
       Assert.areEqual(message, e.getMessage());
     }
     Expect.that(save).hasBeenCalledTimes(0);
@@ -299,6 +316,7 @@ private class QuoteToOrderServiceTest {
     Id accountId,
     Id pricebookId
   ) {
+
     return quoteWithId(QUOTE_ID, status, converted, accountId, pricebookId);
   }
 
@@ -309,6 +327,7 @@ private class QuoteToOrderServiceTest {
     Id accountId,
     Id pricebookId
   ) {
+
     return (Quote) JSON.deserialize(
       JSON.serialize(
         new Map<String, Object>{
@@ -324,6 +343,7 @@ private class QuoteToOrderServiceTest {
   }
 
   private static List<QuoteLineItem> twoLines() {
+
     List<Object> raw = new List<Object>{
       new Map<String, Object>{
         'QuoteId' => QUOTE_ID,

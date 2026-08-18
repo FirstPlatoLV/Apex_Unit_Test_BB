@@ -8,6 +8,7 @@ private class DMLExecutorTest {
   /** Verifies both insert overloads execute real Account DML successfully. */
   @IsTest
   static void insertRecordsTest() {
+
     DMLExecutor dml = new DMLExecutor();
     List<SObject> first = records(new Account(Name = 'one')),
       second = records(new Account(Name = 'two'));
@@ -21,6 +22,7 @@ private class DMLExecutorTest {
   /** Verifies both update overloads persist changes to existing records. */
   @IsTest
   static void updateRecordsTest() {
+
     Account first = new Account(Name = 'one'),
       second = new Account(Name = 'two');
     insert new List<Account>{ first, second };
@@ -41,6 +43,7 @@ private class DMLExecutorTest {
   /** Verifies both external-ID upsert overloads complete successfully. */
   @IsTest
   static void upsertRecordsTest() {
+
     Account first = new Account(Name = 'one'),
       second = new Account(Name = 'two');
     insert new List<Account>{ first, second };
@@ -62,6 +65,7 @@ private class DMLExecutorTest {
   /** Verifies both delete overloads execute real soft-delete operations. */
   @IsTest
   static void deleteRecordsTest() {
+
     Account first = new Account(Name = 'one'),
       second = new Account(Name = 'two');
     insert new List<Account>{ first, second };
@@ -80,6 +84,7 @@ private class DMLExecutorTest {
   /** Verifies both undelete overloads restore previously deleted records. */
   @IsTest
   static void undeleteRecordsTest() {
+
     Account first = new Account(Name = 'one'),
       second = new Account(Name = 'two');
     insert new List<Account>{ first, second };
@@ -97,6 +102,7 @@ private class DMLExecutorTest {
   }
 
   private static List<SObject> records(SObject record) {
+
     return new List<SObject>{ record };
   }
 }

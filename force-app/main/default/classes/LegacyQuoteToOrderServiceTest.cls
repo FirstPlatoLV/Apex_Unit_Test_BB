@@ -37,6 +37,7 @@ private class LegacyQuoteToOrderServiceTest {
    */
   @TestSetup
   static void setupData() {
+
     QuoteToOrderTestDataFactory.createQuote(ACCEPTED_TWO_LINES, 2, 'Accepted');
     QuoteToOrderTestDataFactory.createQuote(ACCEPTED_ONE_LINE, 1, 'Accepted');
     QuoteToOrderTestDataFactory.createQuote(DRAFT_ONE_LINE, 1, 'Draft');
@@ -48,6 +49,7 @@ private class LegacyQuoteToOrderServiceTest {
    */
   @IsTest
   static void convertQuotesTest() {
+
     Quote quoteRecord = quoteByName(ACCEPTED_ONE_LINE);
 
     QuoteToOrderResult result = new LegacyQuoteToOrderService()
@@ -64,6 +66,7 @@ private class LegacyQuoteToOrderServiceTest {
    */
   @IsTest
   static void convertTest() {
+
     // Scenario: null and empty inputs return without querying or performing DML.
     Assert.areEqual(0, LegacyQuoteToOrderService.convert(null).size());
     Assert.areEqual(0, LegacyQuoteToOrderService.convert(new Set<Id>()).size());
@@ -114,6 +117,7 @@ private class LegacyQuoteToOrderServiceTest {
       WHERE Id IN :orderIds
     ];
     for (Order savedOrder : savedOrders) {
+
       Assert.areEqual(Date.today(), savedOrder.EffectiveDate);
       Assert.areEqual(Test.getStandardPricebookId(), savedOrder.Pricebook2Id);
       Assert.areEqual('Draft', savedOrder.Status);
@@ -124,6 +128,7 @@ private class LegacyQuoteToOrderServiceTest {
       FROM OrderItem
       WHERE OrderId IN :orderIds
     ]) {
+
       savedItemsByValues.put(
         savedItem.PricebookEntryId +
           ':' +
@@ -134,6 +139,7 @@ private class LegacyQuoteToOrderServiceTest {
       );
     }
     for (QuoteLineItem sourceLine : sourceLines) {
+
       Assert.isTrue(
         savedItemsByValues.containsKey(
           sourceLine.PricebookEntryId +
@@ -151,6 +157,7 @@ private class LegacyQuoteToOrderServiceTest {
       FROM Quote
       WHERE Id IN :eligibleQuoteIds
     ]) {
+
       Assert.areEqual(
         resultsByQuoteId.get(convertedQuote.Id).orderId,
         convertedQuote.Converted_Order__c
@@ -161,6 +168,7 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies only Quotes matching the accepted status are selected. */
   @IsTest
   static void selectEligibleQuoteIdsTest() {
+
     Quote accepted = inMemoryQuote(QUOTE_ID, 'Accepted');
     Quote draft = inMemoryQuote(QUOTE_TWO_ID, 'Draft');
 
@@ -175,6 +183,7 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies in-memory Quote Lines are grouped by parent Quote ID. */
   @IsTest
   static void groupQuoteLinesTest() {
+
     List<QuoteLineItem> lines = inMemoryLines();
 
     Map<Id, List<QuoteLineItem>> result = LegacyQuoteToOrderService.groupQuoteLines(
@@ -188,6 +197,7 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies validated Quotes are mapped to draft Orders without DML. */
   @IsTest
   static void buildOrdersTest() {
+
     Quote quoteRecord = inMemoryQuote(QUOTE_ID, 'Accepted');
     List<QuoteLineItem> lines = inMemoryLines();
 
@@ -208,6 +218,7 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies Quote Lines are mapped to Order Items with the supplied Order ID. */
   @IsTest
   static void buildOrderItemsTest() {
+
     List<QuoteLineItem> lines = inMemoryLines();
 
     List<OrderItem> result = LegacyQuoteToOrderService.buildOrderItems(
@@ -227,6 +238,7 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies Order IDs and item counts are mapped to conversion results. */
   @IsTest
   static void buildResultsTest() {
+
     QuoteToOrderResult result = LegacyQuoteToOrderService.buildResults(
         new Set<Id>{ QUOTE_ID },
         new Map<Id, Id>{ QUOTE_ID => ORDER_ID },
@@ -243,6 +255,7 @@ private class LegacyQuoteToOrderServiceTest {
   /** Verifies every validation branch directly with in-memory records. */
   @IsTest
   static void validateTest() {
+
     // Scenario: an existing conversion link prevents duplicate conversion.
     assertValidationError(
       inMemoryQuote(QUOTE_ID, 'Accepted', ORDER_ID, ACCOUNT_ID, PRICEBOOK_ID),
@@ -273,6 +286,7 @@ private class LegacyQuoteToOrderServiceTest {
   }
 
   private static Quote inMemoryQuote(Id quoteId, String status) {
+
     return inMemoryQuote(quoteId, status, null, ACCOUNT_ID, PRICEBOOK_ID);
   }
 
@@ -283,6 +297,7 @@ private class LegacyQuoteToOrderServiceTest {
     Id accountId,
     Id pricebookId
   ) {
+
     return (Quote) JSON.deserialize(
       JSON.serialize(
         new Map<String, Object>{
@@ -298,6 +313,7 @@ private class LegacyQuoteToOrderServiceTest {
   }
 
   private static List<QuoteLineItem> inMemoryLines() {
+
     List<Object> raw = new List<Object>{
       new Map<String, Object>{
         'QuoteId' => QUOTE_ID,
@@ -319,6 +335,7 @@ private class LegacyQuoteToOrderServiceTest {
   }
 
   private static Quote quoteByName(String quoteName) {
+
     return [
       SELECT Id, AccountId, Pricebook2Id, Status, Converted_Order__c
       FROM Quote
@@ -331,10 +348,13 @@ private class LegacyQuoteToOrderServiceTest {
     Set<Id> quoteIds,
     String expectedMessage
   ) {
+
     try {
+
       LegacyQuoteToOrderService.convert(quoteIds);
       Assert.fail('Expected QuoteToOrderException');
     } catch (QuoteToOrderException error) {
+
       Assert.areEqual(expectedMessage, error.getMessage());
     }
   }
@@ -344,10 +364,13 @@ private class LegacyQuoteToOrderServiceTest {
     List<QuoteLineItem> quoteLines,
     String expectedMessage
   ) {
+
     try {
+
       LegacyQuoteToOrderService.validate(quoteRecord, quoteLines);
       Assert.fail('Expected QuoteToOrderException');
     } catch (QuoteToOrderException error) {
+
       Assert.areEqual(expectedMessage, error.getMessage());
     }
   }

@@ -16,6 +16,7 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
     IDateProvider dateProvider,
     IQuoteConversionPolicy policy
   ) {
+
     // Constructor injection makes every external dependency explicit and
     // prevents production implementations from being created inside the logic.
     this.dao = dao;
@@ -24,11 +25,14 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
   }
 
   public Map<Id, QuoteToOrderResult> convertQuotes(Set<Id> quoteIds) {
+
     if (quoteIds == null || quoteIds.isEmpty()) {
+
       return new Map<Id, QuoteToOrderResult>();
     }
     Map<Id, Quote> quotesById = dao.findQuotes(quoteIds);
     if (quotesById.size() != quoteIds.size()) {
+
       throw new QuoteToOrderException('Quote does not exist');
     }
     // The policy is replaceable, so tests do not depend on deployable Custom
@@ -40,6 +44,7 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
       acceptedQuoteStatus
     );
     if (eligibleQuoteIds.isEmpty()) {
+
       return new Map<Id, QuoteToOrderResult>();
     }
     Map<Id, List<QuoteLineItem>> linesByQuoteId = groupQuoteLines(
@@ -71,9 +76,12 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
     Map<Id, Quote> quotesById,
     String acceptedQuoteStatus
   ) {
+
     Set<Id> eligibleQuoteIds = new Set<Id>();
     for (Id quoteId : quotesById.keySet()) {
+
       if (quotesById.get(quoteId).Status == acceptedQuoteStatus) {
+
         eligibleQuoteIds.add(quoteId);
       }
     }
@@ -84,9 +92,12 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
   private Map<Id, List<QuoteLineItem>> groupQuoteLines(
     List<QuoteLineItem> quoteLines
   ) {
+
     Map<Id, List<QuoteLineItem>> linesByQuoteId = new Map<Id, List<QuoteLineItem>>();
     for (QuoteLineItem line : quoteLines) {
+
       if (!linesByQuoteId.containsKey(line.QuoteId)) {
+
         linesByQuoteId.put(line.QuoteId, new List<QuoteLineItem>());
       }
       linesByQuoteId.get(line.QuoteId).add(line);
@@ -101,8 +112,10 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
     Map<Id, List<QuoteLineItem>> linesByQuoteId,
     Date effectiveDate
   ) {
+
     Map<Id, Order> ordersByQuoteId = new Map<Id, Order>();
     for (Id quoteId : quoteIds) {
+
       Quote quoteRecord = quotesById.get(quoteId);
       validate(quoteRecord, linesByQuoteId.get(quoteId));
       ordersByQuoteId.put(
@@ -123,10 +136,13 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
     Set<Id> quoteIds,
     Map<Id, List<QuoteLineItem>> linesByQuoteId
   ) {
+
     Map<Id, List<OrderItem>> itemsByQuoteId = new Map<Id, List<OrderItem>>();
     for (Id quoteId : quoteIds) {
+
       List<OrderItem> items = new List<OrderItem>();
       for (QuoteLineItem line : linesByQuoteId.get(quoteId)) {
+
         items.add(
           new OrderItem(
             PricebookEntryId = line.PricebookEntryId,
@@ -146,8 +162,10 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
     Map<Id, Id> orderIdsByQuoteId,
     Map<Id, List<OrderItem>> itemsByQuoteId
   ) {
+
     Map<Id, QuoteToOrderResult> results = new Map<Id, QuoteToOrderResult>();
     for (Id quoteId : quoteIds) {
+
       results.put(
         quoteId,
         new QuoteToOrderResult(
@@ -161,16 +179,21 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
 
   @TestVisible
   private void validate(Quote quoteRecord, List<QuoteLineItem> lines) {
+
     if (quoteRecord.Converted_Order__c != null) {
+
       throw new QuoteToOrderException('Quote was already converted');
     }
     if (quoteRecord.AccountId == null) {
+
       throw new QuoteToOrderException('Quote Account is required');
     }
     if (quoteRecord.Pricebook2Id == null) {
+
       throw new QuoteToOrderException('Quote Price Book is required');
     }
     if (lines == null || lines.isEmpty()) {
+
       throw new QuoteToOrderException('Quote must contain at least one line');
     }
   }

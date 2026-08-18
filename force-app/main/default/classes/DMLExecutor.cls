@@ -10,6 +10,7 @@ public inherited sharing class DMLExecutor implements IDMLExecutor {
     List<SObject> records,
     Boolean allOrNone
   ) {
+
     return Database.insert(records, allOrNone);
   }
 
@@ -18,6 +19,7 @@ public inherited sharing class DMLExecutor implements IDMLExecutor {
     Boolean allOrNone,
     System.AccessLevel accessLevel
   ) {
+
     return Database.insert(records, allOrNone, accessLevel);
   }
 
@@ -26,6 +28,7 @@ public inherited sharing class DMLExecutor implements IDMLExecutor {
     Schema.SObjectField externalIdField,
     Boolean allOrNone
   ) {
+
     return Database.upsert(records, externalIdField, allOrNone);
   }
 
@@ -35,6 +38,7 @@ public inherited sharing class DMLExecutor implements IDMLExecutor {
     Boolean allOrNone,
     System.AccessLevel accessLevel
   ) {
+
     return Database.upsert(records, externalIdField, allOrNone, accessLevel);
   }
 
@@ -42,6 +46,7 @@ public inherited sharing class DMLExecutor implements IDMLExecutor {
     List<SObject> records,
     Boolean allOrNone
   ) {
+
     return Database.update(records, allOrNone);
   }
 
@@ -50,6 +55,7 @@ public inherited sharing class DMLExecutor implements IDMLExecutor {
     Boolean allOrNone,
     System.AccessLevel accessLevel
   ) {
+
     return Database.update(records, allOrNone, accessLevel);
   }
 
@@ -57,6 +63,7 @@ public inherited sharing class DMLExecutor implements IDMLExecutor {
     List<SObject> records,
     Boolean allOrNone
   ) {
+
     return Database.delete(records, allOrNone);
   }
 
@@ -65,6 +72,7 @@ public inherited sharing class DMLExecutor implements IDMLExecutor {
     Boolean allOrNone,
     System.AccessLevel accessLevel
   ) {
+
     return Database.delete(records, allOrNone, accessLevel);
   }
 
@@ -72,6 +80,7 @@ public inherited sharing class DMLExecutor implements IDMLExecutor {
     List<SObject> records,
     Boolean allOrNone
   ) {
+
     return Database.undelete(records, allOrNone);
   }
 
@@ -80,6 +89,7 @@ public inherited sharing class DMLExecutor implements IDMLExecutor {
     Boolean allOrNone,
     System.AccessLevel accessLevel
   ) {
+
     return Database.undelete(records, allOrNone, accessLevel);
   }
 }

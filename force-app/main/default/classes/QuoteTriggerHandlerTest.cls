@@ -24,6 +24,7 @@ private class QuoteTriggerHandlerTest {
     IQuoteToOrderService service = (IQuoteToOrderService) serviceMock.stub;
 
     QuoteTriggerHandler handler() {
+
       return new QuoteTriggerHandler(service);
     }
   }
@@ -31,6 +32,7 @@ private class QuoteTriggerHandlerTest {
   /** Verifies the handler accepts an IQuoteToOrderService dependency. */
   @IsTest
   static void constructorTest() {
+
     Fixture f = new Fixture();
 
     Assert.isNotNull(new QuoteTriggerHandler(f.service));
@@ -39,6 +41,7 @@ private class QuoteTriggerHandlerTest {
   /** Verifies trigger operations other than after update do not invoke conversion. */
   @IsTest
   static void handleTest() {
+
     Fixture f = new Fixture();
     MethodSpy convert = f.serviceMock.spyOn('convertQuotes');
 
@@ -53,6 +56,7 @@ private class QuoteTriggerHandlerTest {
    */
   @IsTest
   static void afterUpdateTest() {
+
     Fixture f = new Fixture();
     MethodSpy convert = f.serviceMock.spyOn('convertQuotes');
     List<Quote> newQuotes = new List<Quote>{

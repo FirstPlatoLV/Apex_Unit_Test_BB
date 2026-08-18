@@ -17,6 +17,7 @@ private class QuoteTriggerTest {
    */
   @IsTest
   static void quoteTriggerTest() {
+
     // Scenario: an eligible status transition creates and links the complete
     // Order graph through whichever implementation metadata currently selects.
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(

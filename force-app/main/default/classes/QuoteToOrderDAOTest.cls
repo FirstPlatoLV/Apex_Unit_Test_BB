@@ -22,6 +22,7 @@ private class QuoteToOrderDAOTest {
   /** Verifies both production and dependency-injected constructors are usable. */
   @IsTest
   static void constructorTest() {
+
     Mock dmlMock = Mock.forType(IDMLExecutor.class);
     IDMLExecutor dml = (IDMLExecutor) dmlMock.stub;
 
@@ -35,6 +36,7 @@ private class QuoteToOrderDAOTest {
    */
   @IsTest
   static void saveOrdersTest() {
+
     Mock dmlMock = Mock.forType(IDMLExecutor.class);
     IDMLExecutor dml = (IDMLExecutor) dmlMock.stub;
     MethodSpy insertRecords = dmlMock.spyOn('insertRecords');
@@ -64,6 +66,7 @@ private class QuoteToOrderDAOTest {
   /** Verifies the Quote lookup crosses exactly one real SOQL boundary. */
   @IsTest
   static void findQuotesTest() {
+
     QuoteToOrderDAO dao = new QuoteToOrderDAO();
 
     Test.startTest();
@@ -81,6 +84,7 @@ private class QuoteToOrderDAOTest {
   /** Verifies the Quote Line lookup crosses exactly one real SOQL boundary. */
   @IsTest
   static void findQuoteLinesTest() {
+
     QuoteToOrderDAO dao = new QuoteToOrderDAO();
 
     Test.startTest();
@@ -103,6 +107,7 @@ private class QuoteToOrderDAOTest {
    */
   @IsTest
   static void markQuotesConvertedTest() {
+
     Mock dmlMock = Mock.forType(IDMLExecutor.class);
     IDMLExecutor dml = (IDMLExecutor) dmlMock.stub;
     MethodSpy updateRecords = dmlMock.spyOn('updateRecords');
@@ -126,6 +131,7 @@ private class QuoteToOrderDAOTest {
   }
 
   private static Database.SaveResult[] successfulInserts() {
+
     return (Database.SaveResult[]) JSON.deserialize(
       '[{"id":"' +
         ORDER_ONE_ID +

@@ -3,6 +3,7 @@ private class TestUtilityTest {
   /** Verifies fake IDs are valid, unique, 15-character, type-prefixed IDs. */
   @IsTest
   static void getFakeIdTest() {
+
     String firstAccountId = TestUtility.getFakeId(Account.SObjectType);
     String secondAccountId = TestUtility.getFakeId(Account.SObjectType);
     String quoteId = TestUtility.getFakeId(Quote.SObjectType);

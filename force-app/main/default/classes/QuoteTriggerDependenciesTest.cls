@@ -8,6 +8,7 @@ private class QuoteTriggerDependenciesTest {
   /** Verifies the composition root exposes the actual Default policy record. */
   @IsTest
   static void getPolicyTest() {
+
     Quote_Conversion_Policy__mdt actualPolicy = QuoteTriggerDependencies.getPolicy();
 
     Assert.areEqual(LegacyQuoteConversionPolicy.getPolicy(), actualPolicy);
@@ -16,6 +17,7 @@ private class QuoteTriggerDependenciesTest {
   /** Verifies the legacy branch is composed as the shared service interface. */
   @IsTest
   static void getLegacyServiceTest() {
+
     IQuoteToOrderService actualService = QuoteTriggerDependencies.getLegacyService();
 
     Assert.isTrue(actualService instanceof LegacyQuoteToOrderService);
@@ -27,6 +29,7 @@ private class QuoteTriggerDependenciesTest {
    */
   @IsTest
   static void getNewServiceTest() {
+
     QuoteToOrderTestDataFactory.Graph graph = QuoteToOrderTestDataFactory.createAcceptedQuote(
       1
     );

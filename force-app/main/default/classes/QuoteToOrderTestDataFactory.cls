@@ -13,6 +13,7 @@ public class QuoteToOrderTestDataFactory {
   }
 
   public static Graph createAcceptedQuote(Integer lineCount) {
+
     return createQuote('Repository Test Quote', lineCount, 'Accepted');
   }
 
@@ -21,6 +22,7 @@ public class QuoteToOrderTestDataFactory {
     Integer lineCount,
     String status
   ) {
+
     Graph graph = new Graph();
     graph.account = new Account(Name = quoteName + ' Account');
     insert graph.account;
@@ -35,6 +37,7 @@ public class QuoteToOrderTestDataFactory {
 
     List<Product2> products = new List<Product2>();
     for (Integer index = 0; index < lineCount; index++) {
+
       products.add(
         new Product2(Name = quoteName + ' Product ' + index, IsActive = true)
       );
@@ -42,6 +45,7 @@ public class QuoteToOrderTestDataFactory {
     insert products;
     graph.entries = new List<PricebookEntry>();
     for (Integer index = 0; index < products.size(); index++) {
+
       graph.entries.add(
         new PricebookEntry(
           Pricebook2Id = Test.getStandardPricebookId(),
@@ -61,6 +65,7 @@ public class QuoteToOrderTestDataFactory {
     insert graph.quoteRecord;
     List<QuoteLineItem> lines = new List<QuoteLineItem>();
     for (Integer index = 0; index < graph.entries.size(); index++) {
+
       lines.add(
         new QuoteLineItem(
           QuoteId = graph.quoteRecord.Id,
