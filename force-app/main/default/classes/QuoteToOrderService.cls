@@ -24,10 +24,6 @@ public inherited sharing class QuoteToOrderService implements IQuoteToOrderServi
   }
 
   public Map<Id, QuoteToOrderResult> convertQuotes(Set<Id> quoteIds) {
-    return convert(quoteIds);
-  }
-
-  public Map<Id, QuoteToOrderResult> convert(Set<Id> quoteIds) {
     if (quoteIds == null || quoteIds.isEmpty()) {
       return new Map<Id, QuoteToOrderResult>();
     }

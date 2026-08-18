@@ -57,22 +57,13 @@ private class QuoteToOrderServiceTest {
     Assert.isNotNull(new QuoteToOrderService(f.dao, f.dates, f.policy));
   }
 
-  /** Verifies the interface entry point delegates and handles an empty batch. */
-  @IsTest
-  static void convertQuotesTest() {
-    Assert.areEqual(
-      0,
-      new Fixture().service().convertQuotes(new Set<Id>()).size()
-    );
-  }
-
   /**
    * Verifies the core conversion orchestration with mocks: mapping Orders and
    * items, returning results, skipping invalid input and statuses, and updating
    * Quotes only after persistence succeeds.
    */
   @IsTest
-  static void convertTest() {
+  static void convertQuotesTest() {
     Fixture f = configured(
       quoteWith('Accepted', null, ACCOUNT_ID, PRICEBOOK_ID),
       twoLines()
@@ -105,7 +96,7 @@ private class QuoteToOrderServiceTest {
       .thenReturn(new Map<Id, Id>{ QUOTE_ID => ORDER_ID });
     MethodSpy mark = f.daoMock.spyOn('markQuotesConverted');
     QuoteToOrderResult result = f.service()
-      .convert(new Set<Id>{ QUOTE_ID })
+      .convertQuotes(new Set<Id>{ QUOTE_ID })
       .get(QUOTE_ID);
     Assert.areEqual(ORDER_ID, result.orderId);
     Assert.areEqual(2, result.orderItemCount);
@@ -115,8 +106,8 @@ private class QuoteToOrderServiceTest {
         Argument.jsonEquals(new Map<Id, Id>{ QUOTE_ID => ORDER_ID })
       );
 
-    Assert.areEqual(0, f.service().convert(new Set<Id>()).size());
-    Assert.areEqual(0, f.service().convert((Set<Id>) null).size());
+    Assert.areEqual(0, f.service().convertQuotes(new Set<Id>()).size());
+    Assert.areEqual(0, f.service().convertQuotes((Set<Id>) null).size());
     assertRejected(configured(null, twoLines()), 'Quote does not exist');
 
     Fixture skipped = configured(
@@ -125,7 +116,10 @@ private class QuoteToOrderServiceTest {
     );
     MethodSpy skippedSave = skipped.daoMock.spyOn('saveOrders');
     Assert.isFalse(
-      skipped.service().convert(new Set<Id>{ QUOTE_ID }).containsKey(QUOTE_ID)
+      skipped
+        .service()
+        .convertQuotes(new Set<Id>{ QUOTE_ID })
+        .containsKey(QUOTE_ID)
     );
     Expect.that(skippedSave).hasBeenCalledTimes(0);
 
@@ -142,7 +136,7 @@ private class QuoteToOrderServiceTest {
     );
     MethodSpy failedMark = failed.daoMock.spyOn('markQuotesConverted');
     try {
-      failed.service().convert(new Set<Id>{ QUOTE_ID });
+      failed.service().convertQuotes(new Set<Id>{ QUOTE_ID });
       Assert.fail('Expected DAO failure');
     } catch (DAOFailureException e) {
       Assert.areEqual('Order persistence failed', e.getMessage());
@@ -291,7 +285,7 @@ private class QuoteToOrderServiceTest {
   private static void assertRejected(Fixture f, String message) {
     MethodSpy save = f.daoMock.spyOn('saveOrders');
     try {
-      f.service().convert(new Set<Id>{ QUOTE_ID });
+      f.service().convertQuotes(new Set<Id>{ QUOTE_ID });
       Assert.fail('Expected rejection');
     } catch (QuoteToOrderException e) {
       Assert.areEqual(message, e.getMessage());
