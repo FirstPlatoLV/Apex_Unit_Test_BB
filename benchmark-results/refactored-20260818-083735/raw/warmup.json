@@ -1,0 +1,264 @@
+{
+  "result": {
+    "summary": {
+      "failRate": "0%",
+      "failing": 0,
+      "hostname": "https://playful-wolf-8c6069-dev-ed.trailblaze.my.salesforce.com",
+      "orgId": "00DWU00000rCpMn2AK",
+      "outcome": "Passed",
+      "passRate": "100%",
+      "passing": 15,
+      "skipped": 0,
+      "testRunId": "707WU00001Et0TQ",
+      "testStartTime": "2026-08-18T05:37:35.000Z",
+      "testsRan": 15,
+      "userId": "005WU0000194Z6LYAU",
+      "username": "maris.melbardis@playful-wolf-8c6069.com",
+      "commandTime": "82 ms",
+      "testExecutionTime": "92 ms",
+      "testTotalTime": "92 ms"
+    },
+    "tests": [
+      {
+        "Id": "07MWU00000DRdFV2A1",
+        "QueueItemId": "709WU00000R0MQpYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "todayTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzoDIYAZ",
+          "Name": "SystemDateProviderTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 12,
+        "FullName": "SystemDateProviderTest.todayTest"
+      },
+      {
+        "Id": "07MWU00000DRdH72AL",
+        "QueueItemId": "709WU00000R0MQoYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "constructorTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzmeVYAR",
+          "Name": "QuoteToOrderDAOTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 26,
+        "FullName": "QuoteToOrderDAOTest.constructorTest"
+      },
+      {
+        "Id": "07MWU00000DRdH82AL",
+        "QueueItemId": "709WU00000R0MQoYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "findQuoteLinesTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzmeVYAR",
+          "Name": "QuoteToOrderDAOTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 11,
+        "FullName": "QuoteToOrderDAOTest.findQuoteLinesTest"
+      },
+      {
+        "Id": "07MWU00000DRdH92AL",
+        "QueueItemId": "709WU00000R0MQoYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "findQuotesTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzmeVYAR",
+          "Name": "QuoteToOrderDAOTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 9,
+        "FullName": "QuoteToOrderDAOTest.findQuotesTest"
+      },
+      {
+        "Id": "07MWU00000DRdHA2A1",
+        "QueueItemId": "709WU00000R0MQoYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "markQuotesConvertedTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzmeVYAR",
+          "Name": "QuoteToOrderDAOTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 4,
+        "FullName": "QuoteToOrderDAOTest.markQuotesConvertedTest"
+      },
+      {
+        "Id": "07MWU00000DRdHB2A1",
+        "QueueItemId": "709WU00000R0MQoYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "saveOrdersTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzmeVYAR",
+          "Name": "QuoteToOrderDAOTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 4,
+        "FullName": "QuoteToOrderDAOTest.saveOrdersTest"
+      },
+      {
+        "Id": "07MWU00000DRdIj2AL",
+        "QueueItemId": "709WU00000R0MQnYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "buildOrderItemsTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 33,
+        "FullName": "QuoteToOrderServiceTest.buildOrderItemsTest"
+      },
+      {
+        "Id": "07MWU00000DRdIk2AL",
+        "QueueItemId": "709WU00000R0MQnYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "buildOrdersTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 8,
+        "FullName": "QuoteToOrderServiceTest.buildOrdersTest"
+      },
+      {
+        "Id": "07MWU00000DRdIl2AL",
+        "QueueItemId": "709WU00000R0MQnYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "buildResultsTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 4,
+        "FullName": "QuoteToOrderServiceTest.buildResultsTest"
+      },
+      {
+        "Id": "07MWU00000DRdIm2AL",
+        "QueueItemId": "709WU00000R0MQnYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "constructorTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 3,
+        "FullName": "QuoteToOrderServiceTest.constructorTest"
+      },
+      {
+        "Id": "07MWU00000DRdIn2AL",
+        "QueueItemId": "709WU00000R0MQnYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "convertQuotesTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 18,
+        "FullName": "QuoteToOrderServiceTest.convertQuotesTest"
+      },
+      {
+        "Id": "07MWU00000DRdIo2AL",
+        "QueueItemId": "709WU00000R0MQnYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "groupQuoteLinesTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 3,
+        "FullName": "QuoteToOrderServiceTest.groupQuoteLinesTest"
+      },
+      {
+        "Id": "07MWU00000DRdIp2AL",
+        "QueueItemId": "709WU00000R0MQnYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "selectEligibleQuoteIdsTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 3,
+        "FullName": "QuoteToOrderServiceTest.selectEligibleQuoteIdsTest"
+      },
+      {
+        "Id": "07MWU00000DRdIq2AL",
+        "QueueItemId": "709WU00000R0MQnYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "validateTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzjglYAB",
+          "Name": "QuoteToOrderServiceTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 8,
+        "FullName": "QuoteToOrderServiceTest.validateTest"
+      },
+      {
+        "Id": "07MWU00000DRdKL2A1",
+        "QueueItemId": "709WU00000R0MQqYAN",
+        "StackTrace": null,
+        "Message": null,
+        "AsyncApexJobId": "707WU00001Et0TQYAZ",
+        "MethodName": "getPolicyTest",
+        "Outcome": "Pass",
+        "ApexClass": {
+          "Id": "01pWU00000RzsC3YAJ",
+          "Name": "QuoteConversionPolicyTest",
+          "NamespacePrefix": null
+        },
+        "RunTime": 28,
+        "FullName": "QuoteConversionPolicyTest.getPolicyTest"
+      }
+    ]
+  }
+}
